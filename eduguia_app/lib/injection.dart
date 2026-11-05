@@ -1,6 +1,7 @@
 import 'data/repositories/in_memory_edu_guia_repository.dart';
 import 'domain/repositories/edu_guia_repository.dart';
 import 'domain/usecases/edu_guia_use_cases.dart';
+import 'presentation/state/analysis_provider.dart';
 import 'presentation/state/session_provider.dart';
 
 /// Contenedor de dependencias (Clean Architecture).
@@ -13,9 +14,11 @@ class AppInjection {
     repository = InMemoryEduGuiaRepository();
     useCases = EduGuiaUseCases(repository);
     session = SessionProvider(useCases: useCases);
+    analysis = AnalysisProvider(useCases: useCases);
   }
 
   late final EduGuiaRepository repository;
   late final EduGuiaUseCases useCases;
   late final SessionProvider session;
+  late final AnalysisProvider analysis;
 }

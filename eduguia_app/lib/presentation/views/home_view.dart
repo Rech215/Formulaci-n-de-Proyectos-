@@ -439,15 +439,34 @@ class _SessionCard extends StatelessWidget {
                         spacing: 12,
                         runSpacing: 12,
                         children: <Widget>[
-                          OutlinedButton.icon(
+                          FilledButton.icon(
                             onPressed: session.cargando
                                 ? null
-                                : () => _simular(context, session),
+                                : () => context.go('/escanear'),
                             icon: const Icon(
-                              Icons.document_scanner_outlined,
+                              Icons.photo_camera_outlined,
                               size: 18,
                             ),
-                            label: const Text('Simular escaneo'),
+                            label: const Text('Escanear tarea'),
+                            style: FilledButton.styleFrom(
+                              backgroundColor: AppColors.brand600,
+                              foregroundColor: Colors.white,
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 18,
+                                vertical: 14,
+                              ),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(999),
+                              ),
+                            ),
+                          ),
+                          OutlinedButton.icon(
+                            onPressed: () => context.go('/planes'),
+                            icon: const Icon(
+                              Icons.workspace_premium_outlined,
+                              size: 18,
+                            ),
+                            label: const Text('Mejorar plan'),
                             style: OutlinedButton.styleFrom(
                               foregroundColor: AppColors.brand700,
                               side: const BorderSide(color: AppColors.brand200),
@@ -460,23 +479,17 @@ class _SessionCard extends StatelessWidget {
                               ),
                             ),
                           ),
-                          FilledButton.icon(
-                            onPressed: () => context.go('/planes'),
+                          TextButton.icon(
+                            onPressed: session.cargando
+                                ? null
+                                : () => _simular(context, session),
                             icon: const Icon(
-                              Icons.workspace_premium_outlined,
+                              Icons.science_outlined,
                               size: 18,
                             ),
-                            label: const Text('Mejorar plan'),
-                            style: FilledButton.styleFrom(
-                              backgroundColor: AppColors.brand600,
-                              foregroundColor: Colors.white,
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 18,
-                                vertical: 14,
-                              ),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(999),
-                              ),
+                            label: const Text('Demo rápido'),
+                            style: TextButton.styleFrom(
+                              foregroundColor: AppColors.slate500,
                             ),
                           ),
                         ],

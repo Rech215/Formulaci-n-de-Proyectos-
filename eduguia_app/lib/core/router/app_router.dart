@@ -6,6 +6,7 @@ import '../../presentation/views/how_it_works_view.dart';
 import '../../presentation/views/not_found_view.dart';
 import '../../presentation/views/pricing_view.dart';
 import '../../presentation/views/problem_view.dart';
+import '../../presentation/views/scan_view.dart';
 import '../../presentation/widgets/app_shell.dart';
 
 abstract class AppRouter {
@@ -45,6 +46,12 @@ abstract class AppRouter {
             name: 'planes',
             pageBuilder: (context, state) =>
                 _page(state, const PricingView()),
+          ),
+          GoRoute(
+            path: '/escanear',
+            name: 'escanear',
+            pageBuilder: (context, state) =>
+                _page(state, const ScanView()),
           ),
         ],
       ),

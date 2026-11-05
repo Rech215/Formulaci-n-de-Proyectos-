@@ -113,6 +113,12 @@ class AppDrawer extends StatelessWidget {
                   ),
                   _drawerItem(
                     context,
+                    icon: Icons.photo_camera_outlined,
+                    label: 'Escanear tarea',
+                    path: '/escanear',
+                  ),
+                  _drawerItem(
+                    context,
                     icon: Icons.workspace_premium_outlined,
                     label: 'Planes y precios',
                     path: '/planes',
