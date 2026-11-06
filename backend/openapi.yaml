@@ -1,0 +1,690 @@
+openapi: 3.0.3
+info:
+  title: EduGuía API
+  version: 1.0.0
+  description: |
+    API para registrar familias, analizar tareas escolares con IA multimodal y
+    gestionar la suscripción Premium. La imagen de la tarea nunca se guarda:
+    se procesa en memoria y se sobrescribe con ceros al terminar.
+servers:
+  - url: http://localhost:4000/api
+    description: Desarrollo local
+tags:
+  - name: Salud
+  - name: Autenticación
+  - name: Hijos
+  - name: Tareas
+  - name: Resumen
+  - name: Suscripción
+  - name: Webhooks
+paths:
+  /salud:
+    get:
+      tags: [Salud]
+      summary: Verifica que el servicio esté en línea
+      responses:
+        '200':
+          description: Servicio disponible
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [estado, servicio, hora]
+                properties:
+                  estado:
+                    type: string
+                    example: ok
+                  servicio:
+                    type: string
+                    example: eduguia-api
+                  hora:
+                    type: string
+                    format: date-time
+  /auth/registro:
+    post:
+      tags: [Autenticación]
+      summary: Registra un padre o tutor y sus hijos
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegistroRequest'
+      responses:
+        '201':
+          description: Cuenta creada; devuelve JWT y perfil
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '409':
+          $ref: '#/components/responses/Conflicto'
+        '422':
+          $ref: '#/components/responses/Validacion'
+        '429':
+          $ref: '#/components/responses/DemasiadasSolicitudes'
+  /auth/login:
+    post:
+      tags: [Autenticación]
+      summary: Inicia sesión y devuelve un JWT
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: Sesión iniciada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '401':
+          $ref: '#/components/responses/NoAutorizado'
+        '422':
+          $ref: '#/components/responses/Validacion'
+        '429':
+          $ref: '#/components/responses/DemasiadasSolicitudes'
+  /auth/perfil:
+    get:
+      tags: [Autenticación]
+      summary: Obtiene el perfil del padre autenticado
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Perfil actualizado
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [padre]
+                properties:
+                  padre:
+                    $ref: '#/components/schemas/Padre'
+        '401':
+          $ref: '#/components/responses/NoAutorizado'
+  /hijos:
+    get:
+      tags: [Hijos]
+      summary: Lista los hijos del padre autenticado
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Lista de hijos
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [hijos]
+                properties:
+                  hijos:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Hijo'
+        '401':
+          $ref: '#/components/responses/NoAutorizado'
+    post:
+      tags: [Hijos]
+      summary: Agrega un hijo
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/HijoInput'
+      responses:
+        '201':
+          description: Hijo agregado
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [padre]
+                properties:
+                  padre:
+                    $ref: '#/components/schemas/Padre'
+        '409':
+          $ref: '#/components/responses/Conflicto'
+        '422':
+          $ref: '#/components/responses/Validacion'
+    delete:
+      tags: [Hijos]
+      summary: Elimina un hijo por nombre
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: nombre
+          in: query
+          required: true
+          schema:
+            type: string
+          example: Mateo
+      responses:
+        '200':
+          description: Hijo eliminado
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [padre]
+                properties:
+                  padre:
+                    $ref: '#/components/schemas/Padre'
+        '404':
+          $ref: '#/components/responses/NoEncontrado'
+  /hijos/{hijoId}:
+    delete:
+      tags: [Hijos]
+      summary: Elimina un hijo por identificador
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: hijoId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Hijo eliminado
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [padre]
+                properties:
+                  padre:
+                    $ref: '#/components/schemas/Padre'
+        '404':
+          $ref: '#/components/responses/NoEncontrado'
+  /tareas/analizar:
+    post:
+      tags: [Tareas]
+      summary: Analiza una tarea escolar con IA multimodal
+      description: |
+        La imagen se recibe en memoria. El servidor devuelve un método de
+        estudio y preguntas guía, nunca la respuesta final. Consume una
+        consulta del plan gratuito.
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [imagen, nombreHijo]
+              properties:
+                imagen:
+                  type: string
+                  format: binary
+                nombreHijo:
+                  type: string
+                  example: Mateo
+                materiaSugerida:
+                  type: string
+                  example: Matemáticas
+      responses:
+        '201':
+          description: Análisis completado
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [tarea, suscripcion]
+                properties:
+                  tarea:
+                    $ref: '#/components/schemas/Tarea'
+                  suscripcion:
+                    $ref: '#/components/schemas/Suscripcion'
+        '401':
+          $ref: '#/components/responses/NoAutorizado'
+        '404':
+          $ref: '#/components/responses/NoEncontrado'
+        '409':
+          $ref: '#/components/responses/Conflicto'
+        '422':
+          $ref: '#/components/responses/Validacion'
+        '429':
+          $ref: '#/components/responses/DemasiadasSolicitudes'
+    get:
+      tags: [Tareas]
+      summary: Lista el historial de tareas
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: limite
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 50
+        - name: salto
+          in: query
+          schema:
+            type: integer
+            minimum: 0
+            default: 0
+      responses:
+        '200':
+          description: Historial
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [tareas]
+                properties:
+                  tareas:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Tarea'
+        '401':
+          $ref: '#/components/responses/NoAutorizado'
+  /tareas/{tareaId}:
+    get:
+      tags: [Tareas]
+      summary: Obtiene una tarea del historial
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: tareaId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Tarea encontrada
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [tarea]
+                properties:
+                  tarea:
+                    $ref: '#/components/schemas/Tarea'
+        '404':
+          $ref: '#/components/responses/NoEncontrado'
+  /resumen:
+    get:
+      tags: [Resumen]
+      summary: Obtiene el resumen de uso del padre
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Resumen
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [resumen]
+                properties:
+                  resumen:
+                    $ref: '#/components/schemas/ResumenUso'
+  /suscripcion:
+    get:
+      tags: [Suscripción]
+      summary: Obtiene el plan y consumo actual
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Suscripción actual
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [suscripcion]
+                properties:
+                  suscripcion:
+                    $ref: '#/components/schemas/Suscripcion'
+  /suscripcion/validar:
+    post:
+      tags: [Suscripción]
+      summary: Valida la compra Premium contra RevenueCat
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Estado sincronizado
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [suscripcion, validado]
+                properties:
+                  suscripcion:
+                    $ref: '#/components/schemas/Suscripcion'
+                  validado:
+                    type: boolean
+        '503':
+          $ref: '#/components/responses/ServicioNoDisponible'
+  /suscripcion/cancelar:
+    post:
+      tags: [Suscripción]
+      summary: Marca el plan como gratuito en el servidor
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Plan actualizado
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [suscripcion]
+                properties:
+                  suscripcion:
+                    $ref: '#/components/schemas/Suscripcion'
+  /webhooks/revenuecat:
+    post:
+      tags: [Webhooks]
+      summary: Recibe eventos de RevenueCat
+      description: |
+        Requiere el secreto compartido en `x-webhook-secret` o como Bearer.
+        Los eventos de compra activan Premium; EXPIRATION lo desactiva.
+      security:
+        - webhookSecret: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                event:
+                  type: object
+                  properties:
+                    app_user_id:
+                      type: string
+                    type:
+                      type: string
+                      example: INITIAL_PURCHASE
+                    expiration_at_ms:
+                      type: integer
+                      format: int64
+      responses:
+        '200':
+          description: Evento recibido o ignorado
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  recibido:
+                    type: boolean
+                  ignorado:
+                    type: boolean
+        '401':
+          $ref: '#/components/responses/NoAutorizado'
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+    webhookSecret:
+      type: apiKey
+      in: header
+      name: x-webhook-secret
+  responses:
+    NoAutorizado:
+      description: Credenciales ausentes o inválidas
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    NoEncontrado:
+      description: Recurso no encontrado
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    Conflicto:
+      description: Regla de negocio incumplida
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    Validacion:
+      description: Datos inválidos
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    DemasiadasSolicitudes:
+      description: Límite de peticiones excedido
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    ServicioNoDisponible:
+      description: Integración externa no configurada
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+  schemas:
+    Error:
+      type: object
+      required: [error]
+      properties:
+        error:
+          type: object
+          required: [code, message]
+          properties:
+            code:
+              type: string
+              example: VALIDACION
+            message:
+              type: string
+            details:
+              nullable: true
+    RegistroRequest:
+      type: object
+      additionalProperties: false
+      required: [nombre, correo, password]
+      properties:
+        nombre:
+          type: string
+          minLength: 2
+          maxLength: 120
+        correo:
+          type: string
+          format: email
+        password:
+          type: string
+          minLength: 8
+          maxLength: 128
+        hijos:
+          type: array
+          maxItems: 10
+          items:
+            $ref: '#/components/schemas/HijoInput'
+    LoginRequest:
+      type: object
+      additionalProperties: false
+      required: [correo, password]
+      properties:
+        correo:
+          type: string
+          format: email
+        password:
+          type: string
+    AuthResponse:
+      type: object
+      required: [token, padre]
+      properties:
+        token:
+          type: string
+        padre:
+          $ref: '#/components/schemas/Padre'
+    Padre:
+      type: object
+      required: [id, nombre, correo, hijos, planActual]
+      properties:
+        id:
+          type: string
+        nombre:
+          type: string
+        correo:
+          type: string
+          format: email
+        hijos:
+          type: array
+          items:
+            $ref: '#/components/schemas/Hijo'
+        planActual:
+          type: string
+          enum: [GRATUITO, PREMIUM]
+        fechaRegistro:
+          type: string
+          format: date-time
+    Hijo:
+      type: object
+      required: [nombre, edad, gradoEscolar]
+      properties:
+        id:
+          type: string
+        nombre:
+          type: string
+        edad:
+          type: integer
+          minimum: 3
+          maximum: 18
+        gradoEscolar:
+          type: string
+    HijoInput:
+      type: object
+      additionalProperties: false
+      required: [nombre, edad, gradoEscolar]
+      properties:
+        nombre:
+          type: string
+          minLength: 2
+          maxLength: 80
+        edad:
+          type: integer
+          minimum: 3
+          maximum: 18
+        gradoEscolar:
+          type: string
+          minLength: 1
+          maxLength: 80
+    Tarea:
+      type: object
+      required:
+        - id
+        - padreId
+        - imagenUrl
+        - nombreHijo
+        - estado
+        - preguntasGuia
+        - fechaCreacion
+      properties:
+        id:
+          type: string
+        padreId:
+          type: string
+        imagenUrl:
+          type: string
+          example: 'memoria://no-retenida'
+          description: Marca de privacidad; no existe una imagen almacenada.
+        nombreHijo:
+          type: string
+        estado:
+          type: string
+          enum: [PENDIENTE, ANALIZANDO, COMPLETADA, ERROR]
+        materia:
+          type: string
+        temaDetectado:
+          type: string
+        metodoSEP:
+          type: string
+        preguntasGuia:
+          type: array
+          items:
+            type: string
+        fechaCreacion:
+          type: string
+          format: date-time
+        mensajeError:
+          type: string
+          nullable: true
+    Suscripcion:
+      type: object
+      required:
+        - id
+        - padreId
+        - tipoPlan
+        - estado
+        - consultasUsadas
+        - limiteConsultas
+        - esPremium
+      properties:
+        id:
+          type: string
+        padreId:
+          type: string
+        tipoPlan:
+          type: string
+          enum: [GRATUITO, PREMIUM]
+        estado:
+          type: string
+          enum: [ACTIVA, CANCELADA, EXPIRADA]
+        consultasUsadas:
+          type: integer
+          minimum: 0
+        limiteConsultas:
+          type: integer
+          description: '-1 significa consultas ilimitadas.'
+          example: 5
+        consultasRestantes:
+          type: integer
+          nullable: true
+        esPremium:
+          type: boolean
+        fechaInicio:
+          type: string
+          format: date-time
+        fechaRenovacion:
+          type: string
+          format: date-time
+          nullable: true
+    ResumenUso:
+      type: object
+      required:
+        - nombrePadre
+        - plan
+        - consultasUsadas
+        - totalTareas
+        - tareasCompletadas
+        - cantidadHijos
+      properties:
+        nombrePadre:
+          type: string
+        plan:
+          type: string
+          enum: [GRATUITO, PREMIUM]
+        consultasUsadas:
+          type: integer
+          minimum: 0
+        consultasRestantes:
+          type: integer
+          nullable: true
+        totalTareas:
+          type: integer
+          minimum: 0
+        tareasCompletadas:
+          type: integer
+          minimum: 0
+        cantidadHijos:
+          type: integer
+          minimum: 0

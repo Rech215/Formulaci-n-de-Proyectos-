@@ -13,14 +13,45 @@ class RegistrarPadre {
   Future<Padre> call({
     required String nombre,
     required String correo,
+    String password = 'demo12345',
     List<Hijo> hijos = const <Hijo>[],
   }) {
     return _repository.registrarPadre(
       nombre: nombre,
       correo: correo,
+      password: password,
       hijos: hijos,
     );
   }
+}
+
+class IniciarSesion {
+  const IniciarSesion(this._repository);
+
+  final EduGuiaRepository _repository;
+
+  Future<Padre> call({
+    required String correo,
+    required String password,
+  }) {
+    return _repository.iniciarSesion(correo: correo, password: password);
+  }
+}
+
+class RestaurarSesion {
+  const RestaurarSesion(this._repository);
+
+  final EduGuiaRepository _repository;
+
+  Future<Padre?> call() => _repository.restaurarSesion();
+}
+
+class CerrarSesion {
+  const CerrarSesion(this._repository);
+
+  final EduGuiaRepository _repository;
+
+  Future<void> call() => _repository.cerrarSesion();
 }
 
 class ObtenerPadre {
@@ -79,6 +110,26 @@ class IniciarAnalisisTarea {
   }
 }
 
+class AnalizarTarea {
+  const AnalizarTarea(this._repository);
+
+  final EduGuiaRepository _repository;
+
+  Future<Tarea> call({
+    required String padreId,
+    required String imagenPath,
+    required String nombreHijo,
+    String materiaSugerida = '',
+  }) {
+    return _repository.analizarTarea(
+      padreId: padreId,
+      imagenPath: imagenPath,
+      nombreHijo: nombreHijo,
+      materiaSugerida: materiaSugerida,
+    );
+  }
+}
+
 class CompletarAnalisisTarea {
   const CompletarAnalisisTarea(this._repository);
 
@@ -127,6 +178,14 @@ class ObtenerSuscripcion {
   }
 }
 
+class ValidarSuscripcion {
+  const ValidarSuscripcion(this._repository);
+
+  final EduGuiaRepository _repository;
+
+  Future<Suscripcion> call() => _repository.validarSuscripcion();
+}
+
 class ActualizarPlan {
   const ActualizarPlan(this._repository);
 
@@ -168,9 +227,13 @@ class ObtenerResumenUso {
 class EduGuiaUseCases {
   EduGuiaUseCases(EduGuiaRepository repository)
       : registrarPadre = RegistrarPadre(repository),
+        iniciarSesion = IniciarSesion(repository),
+        restaurarSesion = RestaurarSesion(repository),
+        cerrarSesion = CerrarSesion(repository),
         obtenerPadre = ObtenerPadre(repository),
         agregarHijo = AgregarHijo(repository),
         eliminarHijo = EliminarHijo(repository),
+        analizarTarea = AnalizarTarea(repository),
         crearTarea = CrearTarea(repository),
         iniciarAnalisisTarea = IniciarAnalisisTarea(repository),
         completarAnalisisTarea = CompletarAnalisisTarea(repository),
@@ -178,15 +241,20 @@ class EduGuiaUseCases {
         obtenerTareasPorPadre = ObtenerTareasPorPadre(repository),
         obtenerTarea = ObtenerTarea(repository),
         obtenerSuscripcion = ObtenerSuscripcion(repository),
+        validarSuscripcion = ValidarSuscripcion(repository),
         actualizarPlan = ActualizarPlan(repository),
         cancelarSuscripcion = CancelarSuscripcion(repository),
         puedeConsultar = PuedeConsultar(repository),
         obtenerResumenUso = ObtenerResumenUso(repository);
 
   final RegistrarPadre registrarPadre;
+  final IniciarSesion iniciarSesion;
+  final RestaurarSesion restaurarSesion;
+  final CerrarSesion cerrarSesion;
   final ObtenerPadre obtenerPadre;
   final AgregarHijo agregarHijo;
   final EliminarHijo eliminarHijo;
+  final AnalizarTarea analizarTarea;
   final CrearTarea crearTarea;
   final IniciarAnalisisTarea iniciarAnalisisTarea;
   final CompletarAnalisisTarea completarAnalisisTarea;
@@ -194,6 +262,7 @@ class EduGuiaUseCases {
   final ObtenerTareasPorPadre obtenerTareasPorPadre;
   final ObtenerTarea obtenerTarea;
   final ObtenerSuscripcion obtenerSuscripcion;
+  final ValidarSuscripcion validarSuscripcion;
   final ActualizarPlan actualizarPlan;
   final CancelarSuscripcion cancelarSuscripcion;
   final PuedeConsultar puedeConsultar;

@@ -482,12 +482,12 @@ class _SessionCard extends StatelessWidget {
                           TextButton.icon(
                             onPressed: session.cargando
                                 ? null
-                                : () => _simular(context, session),
+                                : () => _simular(context),
                             icon: const Icon(
                               Icons.science_outlined,
                               size: 18,
                             ),
-                            label: const Text('Demo rápido'),
+                            label: const Text('Probar escaneo'),
                             style: TextButton.styleFrom(
                               foregroundColor: AppColors.slate500,
                             ),
@@ -505,27 +505,8 @@ class _SessionCard extends StatelessWidget {
     );
   }
 
-  Future<void> _simular(
-    BuildContext context,
-    SessionProvider session,
-  ) async {
-    final hijo = session.padre?.hijos.isNotEmpty == true
-        ? session.padre!.hijos.first.nombre
-        : 'tu hijo';
-
-    await session.simularEscaneo(nombreHijo: hijo);
-    if (!context.mounted) return;
-
-    final messenger = ScaffoldMessenger.of(context);
-    final error = session.error;
-    messenger.showSnackBar(
-      SnackBar(
-        content: Text(
-          error ?? 'Análisis demo completado. Se actualizó tu historial.',
-        ),
-      ),
-    );
-    if (error != null) session.limpiarError();
+  Future<void> _simular(BuildContext context) async {
+    context.go('/escanear');
   }
 }
 

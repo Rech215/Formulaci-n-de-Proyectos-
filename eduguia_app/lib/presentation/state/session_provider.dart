@@ -6,12 +6,28 @@ import '../../domain/entities/padre.dart';
 import '../../domain/entities/resumen_uso.dart';
 import '../../domain/entities/suscripcion.dart';
 import '../../domain/entities/tarea.dart';
+import '../../domain/repositories/pagos_repository.dart';
 import '../../domain/usecases/edu_guia_use_cases.dart';
 
 class SessionProvider extends ChangeNotifier {
-  SessionProvider({required EduGuiaUseCases useCases}) : _useCases = useCases;
+  SessionProvider({
+    required EduGuiaUseCases useCases,
+    PagosRepository? pagosRepository,
+  })  : _useCases = useCases,
+        _pagosRepository = pagosRepository;
+
+  static const bool _demoAutoLoginConfigurado = bool.fromEnvironment(
+    'EDUGUIA_DEMO_AUTO_LOGIN',
+    defaultValue: true,
+  );
+
+  static const String _demoCorreo = 'demo@eduguia.mx';
+  static const String _demoPassword = 'demo12345';
+
+  bool get _demoAutoLogin => kDebugMode && _demoAutoLoginConfigurado;
 
   final EduGuiaUseCases _useCases;
+  final PagosRepository? _pagosRepository;
 
   Padre? _padre;
   Suscripcion? _suscripcion;
@@ -22,21 +38,13 @@ class SessionProvider extends ChangeNotifier {
   String? _error;
 
   Padre? get padre => _padre;
-
   Suscripcion? get suscripcion => _suscripcion;
-
   List<Tarea> get tareas => List<Tarea>.unmodifiable(_tareas);
-
   ResumenUso? get resumen => _resumen;
-
   bool get cargando => _cargando;
-
   bool get inicializado => _inicializado;
-
   String? get error => _error;
-
   bool get haySesion => _padre != null;
-
   bool get puedeConsultar => _suscripcion?.puedeConsultar() ?? false;
 
   Future<void> initialize() async {
@@ -47,24 +55,88 @@ class SessionProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      final padre = await _useCases.registrarPadre(
-        nombre: 'Familia Demo',
-        correo: 'demo@eduguia.mx',
-        hijos: <Hijo>[
-          Hijo(nombre: 'Mateo', edad: 9, gradoEscolar: '4to Primaria'),
-        ],
-      );
-      _padre = padre;
-      await _refrescar(padre.id, notificar: false);
+      final restaurado = await _useCases.restaurarSesion.call();
+
+      if (restaurado != null) {
+        _padre = restaurado;
+      } else if (_demoAutoLogin) {
+        _padre = await _iniciarSesionDemo();
+      }
+
+      if (_padre != null) {
+        await _refrescar(_padre!.id, notificar: false);
+      }
       _inicializado = true;
     } on DomainException catch (error) {
       _error = error.message;
     } catch (_) {
-      _error = 'No fue posible iniciar la sesión de demostración.';
+      _error = 'No fue posible iniciar la sesión.';
     } finally {
       _cargando = false;
       notifyListeners();
     }
+  }
+
+  Future<Padre> _iniciarSesionDemo() async {
+    try {
+      return await _useCases.iniciarSesion(
+        correo: _demoCorreo,
+        password: _demoPassword,
+      );
+    } on DomainException {
+      return _useCases.registrarPadre(
+        nombre: 'Familia Demo',
+        correo: _demoCorreo,
+        password: _demoPassword,
+        hijos: <Hijo>[
+          Hijo(nombre: 'Mateo', edad: 9, gradoEscolar: '4to Primaria'),
+        ],
+      );
+    }
+  }
+
+  Future<void> iniciarSesion({
+    required String correo,
+    required String password,
+  }) async {
+    await _ejecutar(() async {
+      final padre = await _useCases.iniciarSesion(
+        correo: correo,
+        password: password,
+      );
+      _padre = padre;
+      await _refrescar(padre.id, notificar: false);
+      _inicializado = true;
+    });
+  }
+
+  Future<void> registrar({
+    required String nombre,
+    required String correo,
+    required String password,
+    List<Hijo> hijos = const <Hijo>[],
+  }) async {
+    await _ejecutar(() async {
+      final padre = await _useCases.registrarPadre(
+        nombre: nombre,
+        correo: correo,
+        password: password,
+        hijos: hijos,
+      );
+      _padre = padre;
+      await _refrescar(padre.id, notificar: false);
+      _inicializado = true;
+    });
+  }
+
+  Future<void> cerrarSesion() async {
+    await _ejecutar(() async {
+      await _useCases.cerrarSesion.call();
+      _padre = null;
+      _suscripcion = null;
+      _tareas = const <Tarea>[];
+      _resumen = null;
+    });
   }
 
   Future<void> agregarHijo({
@@ -106,43 +178,54 @@ class SessionProvider extends ChangeNotifier {
     });
   }
 
+  Future<void> comprarPremium() async {
+    final padre = _padre;
+    final pagos = _pagosRepository;
+    if (padre == null) return;
+
+    if (pagos == null) {
+      _error = 'La compra integrada no está disponible en esta versión.';
+      notifyListeners();
+      return;
+    }
+
+    await _ejecutar(() async {
+      await pagos.inicializar(appUserId: padre.id);
+      final suscripcion = await pagos.comprarPremium();
+      if (suscripcion != null) {
+        _suscripcion = suscripcion;
+      }
+      await _refrescar(padre.id, notificar: false);
+    });
+  }
+
+  Future<void> restaurarCompras() async {
+    final padre = _padre;
+    final pagos = _pagosRepository;
+    if (padre == null) return;
+
+    if (pagos == null) {
+      _error = 'La restauración de compras no está disponible.';
+      notifyListeners();
+      return;
+    }
+
+    await _ejecutar(() async {
+      await pagos.inicializar(appUserId: padre.id);
+      final suscripcion = await pagos.restaurarCompras();
+      if (suscripcion != null) {
+        _suscripcion = suscripcion;
+      }
+      await _refrescar(padre.id, notificar: false);
+    });
+  }
+
   Future<void> cancelarSuscripcion() async {
     final padre = _padre;
     if (padre == null) return;
 
     await _ejecutar(() async {
       await _useCases.cancelarSuscripcion(padre.id);
-      await _refrescar(padre.id, notificar: false);
-    });
-  }
-
-  Future<void> simularEscaneo({required String nombreHijo}) async {
-    final padre = _padre;
-    if (padre == null) return;
-
-    await _ejecutar(() async {
-      final tarea = await _useCases.crearTarea(
-        padreId: padre.id,
-        imagenUrl:
-            'https://images.eduguia.mx/demo/tarea-${DateTime.now().millisecondsSinceEpoch}.jpg',
-        nombreHijo: nombreHijo,
-      );
-      final analizando = await _useCases.iniciarAnalisisTarea(tarea.id);
-      await _useCases.completarAnalisisTarea(
-        analizando.id,
-        ResultadoAnalisis(
-          materia: 'Matemáticas',
-          temaDetectado: 'Fracciones equivalentes',
-          metodoSep:
-              'La SEP introduce el tema con material concreto, representaciones '
-              'gráficas y la recta numérica antes de llegar a la regla numérica.',
-          preguntasGuia: const <String>[
-            '¿Qué representa cada parte de la tarea?',
-            '¿Puedes dibujarlo o usar un objeto de casa para explicarlo?',
-            '¿Qué pasaría si cambias el orden o el tamaño de las partes?',
-          ],
-        ),
-      );
       await _refrescar(padre.id, notificar: false);
     });
   }

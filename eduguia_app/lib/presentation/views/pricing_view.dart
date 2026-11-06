@@ -71,6 +71,15 @@ class _PricingViewState extends State<PricingView> {
               const SizedBox(height: 36),
               const _VentajaCompetitiva(),
               const SizedBox(height: 28),
+              TextButton.icon(
+                onPressed: _restaurarCompras,
+                icon: const Icon(Icons.restore),
+                style: TextButton.styleFrom(
+                  foregroundColor: AppColors.brand600,
+                ),
+                label: const Text('Restaurar compras'),
+              ),
+              const SizedBox(height: 8),
               TextButton(
                 onPressed: () => context.go('/inicio'),
                 style: TextButton.styleFrom(
@@ -85,6 +94,24 @@ class _PricingViewState extends State<PricingView> {
     );
   }
 
+  Future<void> _restaurarCompras() async {
+    final session = context.read<SessionProvider>();
+    await session.restaurarCompras();
+    if (!mounted) return;
+
+    final error = session.error;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          error ?? (session.suscripcion?.esPremium == true
+              ? 'Compras restauradas. Tu plan Premium está activo.'
+              : 'No encontramos una suscripción Premium activa.'),
+        ),
+      ),
+    );
+    if (error != null) session.limpiarError();
+  }
+
   Future<void> _seleccionarPlan(Plan plan) async {
     final session = context.read<SessionProvider>();
     final tipo =
@@ -93,7 +120,12 @@ class _PricingViewState extends State<PricingView> {
     setState(() => _planSeleccionado = plan.id);
 
     if (session.haySesion && session.suscripcion?.tipoPlan != tipo) {
-      await session.actualizarPlan(tipo);
+      if (tipo == TipoPlan.premium) {
+        await session.comprarPremium();
+      } else {
+        await session.cancelarSuscripcion();
+      }
+
       if (!mounted) return;
 
       final error = session.error;
@@ -102,6 +134,16 @@ class _PricingViewState extends State<PricingView> {
           SnackBar(content: Text(error)),
         );
         session.limpiarError();
+        return;
+      }
+
+      if (tipo == TipoPlan.premium &&
+          session.suscripcion?.tipoPlan != TipoPlan.premium) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('La compra no se completó. Puedes intentarlo de nuevo.'),
+          ),
+        );
         return;
       }
     }

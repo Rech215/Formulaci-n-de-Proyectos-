@@ -4,7 +4,7 @@ publish_to: 'none'
 version: 1.0.0+1
 
 environment:
-  sdk: '>=3.3.0 <4.0.0'
+  sdk: '>=3.4.0 <4.0.0'
 
 dependencies:
   flutter:
@@ -13,6 +13,10 @@ dependencies:
   provider: ^6.1.2
   image_picker: ^1.1.2
   cupertino_icons: ^1.0.8
+  http: ^1.6.0
+  http_parser: ^4.1.2
+  flutter_secure_storage: ^11.2.0
+  purchases_flutter: ^11.0.1
 
 dev_dependencies:
   flutter_test:

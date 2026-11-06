@@ -47,6 +47,15 @@
 			</array>
 		</dict>
 	</dict>
+	<key>NSCameraUsageDescription</key>
+	<string>EduGuía usa la cámara para fotografiar la tarea escolar y analizarla con IA.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>EduGuía usa tus fotos para seleccionar la tarea escolar y analizarla con IA.</string>
+	<key>NSAppTransportSecurity</key>
+	<dict>
+		<key>NSAllowsLocalNetworking</key>
+		<true/>
+	</dict>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
 	<key>UILaunchStoryboardName</key>

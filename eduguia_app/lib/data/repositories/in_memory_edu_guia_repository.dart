@@ -10,7 +10,9 @@ class InMemoryEduGuiaRepository implements EduGuiaRepository {
   final Map<String, Padre> _padres = <String, Padre>{};
   final Map<String, Tarea> _tareas = <String, Tarea>{};
   final Map<String, Suscripcion> _suscripciones = <String, Suscripcion>{};
+  final Map<String, String> _passwords = <String, String>{};
   int _contadorId = 0;
+  String? _sesionActiva;
 
   String _generarId(String prefijo) {
     _contadorId++;
@@ -21,6 +23,7 @@ class InMemoryEduGuiaRepository implements EduGuiaRepository {
   Future<Padre> registrarPadre({
     required String nombre,
     required String correo,
+    String password = 'demo12345',
     List<Hijo> hijos = const <Hijo>[],
   }) async {
     final correoNormalizado = correo.trim().toLowerCase();
@@ -41,6 +44,8 @@ class InMemoryEduGuiaRepository implements EduGuiaRepository {
       hijos: hijos,
     );
     _padres[padreId] = padre;
+    _passwords[correoNormalizado] = password;
+    _sesionActiva = padreId;
 
     final suscripcion = Suscripcion(
       id: _generarId('sub'),
@@ -50,6 +55,72 @@ class InMemoryEduGuiaRepository implements EduGuiaRepository {
     _suscripciones[padreId] = suscripcion;
 
     return padre;
+  }
+
+  @override
+  Future<Padre> iniciarSesion({
+    required String correo,
+    required String password,
+  }) async {
+    final correoNormalizado = correo.trim().toLowerCase();
+    Padre? padre;
+    for (final item in _padres.values) {
+      if (item.correo == correoNormalizado) {
+        padre = item;
+        break;
+      }
+    }
+
+    if (padre == null || _passwords[correoNormalizado] != password) {
+      throw const DomainException('Correo o contraseña incorrectos.');
+    }
+
+    _sesionActiva = padre.id;
+    return padre;
+  }
+
+  @override
+  Future<Padre?> restaurarSesion() async {
+    final padreId = _sesionActiva;
+    if (padreId == null) return null;
+    return _padres[padreId];
+  }
+
+  @override
+  Future<void> cerrarSesion() async {
+    _sesionActiva = null;
+  }
+
+  @override
+  Future<Tarea> analizarTarea({
+    required String padreId,
+    required String imagenPath,
+    required String nombreHijo,
+    String materiaSugerida = '',
+  }) async {
+    final tarea = await crearTarea(
+      padreId: padreId,
+      imagenUrl: imagenPath,
+      nombreHijo: nombreHijo,
+    );
+    final analizando = await iniciarAnalisisTarea(tarea.id);
+    return completarAnalisisTarea(
+      analizando.id,
+      ResultadoAnalisis(
+        materia: materiaSugerida.trim().isEmpty
+            ? 'Matemáticas'
+            : materiaSugerida.trim(),
+        temaDetectado: 'Fracciones equivalentes',
+        metodoSep:
+            'La SEP parte de material concreto y representaciones gráficas '
+            'antes de llegar a la regla numérica.',
+        preguntasGuia: const <String>[
+          '¿Qué representa cada parte de la tarea?',
+          '¿Puedes dibujarlo o usar un objeto de casa para explicarlo?',
+          '¿Qué pasaría si cambias el orden o el tamaño de las partes?',
+        ],
+      ),
+    );
   }
 
   @override
@@ -145,6 +216,15 @@ class InMemoryEduGuiaRepository implements EduGuiaRepository {
 
   @override
   Future<Suscripcion> obtenerSuscripcion(String padreId) async {
+    return _buscarSuscripcion(padreId);
+  }
+
+  @override
+  Future<Suscripcion> validarSuscripcion() async {
+    final padreId = _sesionActiva;
+    if (padreId == null) {
+      throw const DomainException('No hay una sesión activa.');
+    }
     return _buscarSuscripcion(padreId);
   }
 

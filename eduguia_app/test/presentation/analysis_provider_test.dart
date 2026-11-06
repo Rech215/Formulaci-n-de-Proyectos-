@@ -1,4 +1,4 @@
-import 'package:eduguia_app/data/repositories/in_memory_edu_guia_repository.dart';
+﻿import 'package:eduguia_app/data/repositories/in_memory_edu_guia_repository.dart';
 import 'package:eduguia_app/domain/entities/hijo.dart';
 import 'package:eduguia_app/domain/usecases/edu_guia_use_cases.dart';
 import 'package:eduguia_app/presentation/state/analysis_provider.dart';
@@ -31,7 +31,7 @@ void main() {
 
     await analysisProvider.analizarTarea(
       padreId: padre.id,
-      imagenUrl: 'path/to/tarea.jpg',
+      imagenPath: 'path/to/tarea.jpg',
       nombreHijo: 'Sofía',
     );
 
@@ -50,7 +50,7 @@ void main() {
 
     await analysisProvider.analizarTarea(
       padreId: padre.id,
-      imagenUrl: 'path/to/tarea.jpg',
+      imagenPath: 'path/to/tarea.jpg',
       nombreHijo: 'Sofía',
     );
 
@@ -60,4 +60,3 @@ void main() {
     expect(analysisProvider.tareaActual, isNull);
   });
 }
-

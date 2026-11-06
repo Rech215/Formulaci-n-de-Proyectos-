@@ -77,22 +77,21 @@ class _ScanViewState extends State<ScanView> {
     }
   }
 
-  void _analizar() {
+  Future<void> _analizar() async {
     final session = context.read<SessionProvider>();
     final analysis = context.read<AnalysisProvider>();
     final padre = session.padre;
     if (padre == null || _imagen == null) return;
 
-    analysis.analizarTarea(
+    await analysis.analizarTarea(
       padreId: padre.id,
-      imagenUrl: _imagen!.path,
+      imagenPath: _imagen!.path,
       nombreHijo: _hijoSeleccionado,
     );
 
-    // Refrescar la sesión después del análisis para actualizar contadores
-    Future.delayed(const Duration(seconds: 3), () {
-      if (mounted) session.recargar();
-    });
+    if (mounted) {
+      await session.recargar();
+    }
   }
 
   void _reiniciar() {

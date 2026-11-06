@@ -8,14 +8,31 @@ abstract class EduGuiaRepository {
   Future<Padre> registrarPadre({
     required String nombre,
     required String correo,
+    String password = 'demo12345',
     List<Hijo> hijos = const <Hijo>[],
   });
+
+  Future<Padre> iniciarSesion({
+    required String correo,
+    required String password,
+  });
+
+  Future<Padre?> restaurarSesion();
+
+  Future<void> cerrarSesion();
 
   Future<Padre> obtenerPadre(String padreId);
 
   Future<Padre> agregarHijo(String padreId, Hijo hijo);
 
   Future<Padre> eliminarHijo(String padreId, String nombreHijo);
+
+  Future<Tarea> analizarTarea({
+    required String padreId,
+    required String imagenPath,
+    required String nombreHijo,
+    String materiaSugerida = '',
+  });
 
   Future<Tarea> crearTarea({
     required String padreId,
@@ -37,6 +54,8 @@ abstract class EduGuiaRepository {
   Future<Tarea> obtenerTarea(String tareaId);
 
   Future<Suscripcion> obtenerSuscripcion(String padreId);
+
+  Future<Suscripcion> validarSuscripcion();
 
   Future<Suscripcion> actualizarPlan(String padreId, TipoPlan nuevoPlan);
 
