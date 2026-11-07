@@ -1,16 +1,17 @@
-import '../../core/errors/domain_exception.dart';
+import '../../core/errors/network_exceptions.dart';
 
-class ApiException extends DomainException {
+/// Error devuelto por la API HTTP de EduGuía.
+///
+/// Extiende [ServerException] para que la capa de presentación pueda tratar
+/// todos los errores del servidor de la misma forma.
+class ApiException extends ServerException {
   const ApiException(
     super.message, {
-    this.code = 'ERROR_API',
-    this.status,
+    super.code = 'ERROR_API',
+    super.statusCode,
   });
 
-  final String code;
-  final int? status;
-
-  bool get esNoAutorizado => status == 401;
+  int? get status => statusCode;
 
   @override
   String toString() => message;

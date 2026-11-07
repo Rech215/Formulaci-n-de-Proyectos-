@@ -37,6 +37,12 @@ class AppShell extends StatelessWidget {
       activeIcon: Icons.auto_awesome,
     ),
     _DestinoNav(
+      path: '/historial',
+      label: 'Historial',
+      icon: Icons.history_edu_outlined,
+      activeIcon: Icons.history_edu,
+    ),
+    _DestinoNav(
       path: '/planes',
       label: 'Planes',
       icon: Icons.workspace_premium_outlined,
@@ -59,7 +65,8 @@ class AppShell extends StatelessWidget {
         actions: <Widget>[
           Consumer<SessionProvider>(
             builder: (context, session, _) {
-              if (!session.haySesion || MediaQuery.sizeOf(context).width < 360) {
+              if (!session.haySesion ||
+                  MediaQuery.sizeOf(context).width < 360) {
                 return const SizedBox.shrink();
               }
               final premium = session.suscripcion?.esPremium ?? false;
@@ -67,9 +74,7 @@ class AppShell extends StatelessWidget {
                 padding: const EdgeInsets.only(right: 12),
                 child: Chip(
                   avatar: Icon(
-                    premium
-                        ? Icons.workspace_premium
-                        : Icons.person_outline,
+                    premium ? Icons.workspace_premium : Icons.person_outline,
                     size: 16,
                     color: AppColors.brand700,
                   ),
@@ -93,6 +98,7 @@ class AppShell extends StatelessWidget {
       drawer: const AppDrawer(),
       body: child,
       bottomNavigationBar: BottomNavigationBar(
+        type: BottomNavigationBarType.fixed,
         currentIndex: _indiceActual,
         onTap: (indice) => context.go(_destinos[indice].path),
         items: <BottomNavigationBarItem>[

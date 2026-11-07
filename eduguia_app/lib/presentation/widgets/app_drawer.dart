@@ -119,13 +119,21 @@ class AppDrawer extends StatelessWidget {
                   ),
                   _drawerItem(
                     context,
+                    icon: Icons.history_edu_outlined,
+                    label: 'Historial',
+                    path: '/historial',
+                  ),
+                  _drawerItem(
+                    context,
                     icon: Icons.workspace_premium_outlined,
                     label: 'Planes y precios',
                     path: '/planes',
                   ),
                   const Divider(height: 24),
-                  _infoItem(context, Icons.receipt_long_outlined, 'Términos de servicio'),
-                  _infoItem(context, Icons.shield_outlined, 'Privacidad de datos'),
+                  _infoItem(context, Icons.receipt_long_outlined,
+                      'Términos de servicio'),
+                  _infoItem(
+                      context, Icons.shield_outlined, 'Privacidad de datos'),
                   _infoItem(context, Icons.mail_outline, 'Contacto'),
                 ],
               ),

@@ -3,10 +3,10 @@ import '../../domain/repositories/edu_guia_repository.dart';
 import '../../domain/repositories/pagos_repository.dart';
 
 class MockPagosRepository implements PagosRepository {
-  MockPagosRepository({required EduGuiaRepository eduGuiaRepository})
+  MockPagosRepository({required BaseEduGuiaRepository eduGuiaRepository})
       : _eduGuiaRepository = eduGuiaRepository;
 
-  final EduGuiaRepository _eduGuiaRepository;
+  final BaseEduGuiaRepository _eduGuiaRepository;
 
   String? _appUserId;
   bool _configurado = false;

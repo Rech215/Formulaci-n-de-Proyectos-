@@ -36,6 +36,7 @@ class SessionProvider extends ChangeNotifier {
   bool _cargando = false;
   bool _inicializado = false;
   String? _error;
+  DomainException? _errorExcepcion;
 
   Padre? get padre => _padre;
   Suscripcion? get suscripcion => _suscripcion;
@@ -44,6 +45,7 @@ class SessionProvider extends ChangeNotifier {
   bool get cargando => _cargando;
   bool get inicializado => _inicializado;
   String? get error => _error;
+  DomainException? get errorExcepcion => _errorExcepcion;
   bool get haySesion => _padre != null;
   bool get puedeConsultar => _suscripcion?.puedeConsultar() ?? false;
 
@@ -52,6 +54,7 @@ class SessionProvider extends ChangeNotifier {
 
     _cargando = true;
     _error = null;
+    _errorExcepcion = null;
     notifyListeners();
 
     try {
@@ -68,9 +71,12 @@ class SessionProvider extends ChangeNotifier {
       }
       _inicializado = true;
     } on DomainException catch (error) {
+      _errorExcepcion = error;
       _error = error.message;
     } catch (_) {
-      _error = 'No fue posible iniciar la sesión.';
+      const error = DomainException('No fue posible iniciar la sesión.');
+      _errorExcepcion = error;
+      _error = error.message;
     } finally {
       _cargando = false;
       notifyListeners();
@@ -184,7 +190,11 @@ class SessionProvider extends ChangeNotifier {
     if (padre == null) return;
 
     if (pagos == null) {
-      _error = 'La compra integrada no está disponible en esta versión.';
+      const error = DomainException(
+        'La compra integrada no está disponible en esta versión.',
+      );
+      _errorExcepcion = error;
+      _error = error.message;
       notifyListeners();
       return;
     }
@@ -205,7 +215,11 @@ class SessionProvider extends ChangeNotifier {
     if (padre == null) return;
 
     if (pagos == null) {
-      _error = 'La restauración de compras no está disponible.';
+      const error = DomainException(
+        'La restauración de compras no está disponible.',
+      );
+      _errorExcepcion = error;
+      _error = error.message;
       notifyListeners();
       return;
     }
@@ -239,6 +253,7 @@ class SessionProvider extends ChangeNotifier {
   void limpiarError() {
     if (_error == null) return;
     _error = null;
+    _errorExcepcion = null;
     notifyListeners();
   }
 
@@ -253,14 +268,18 @@ class SessionProvider extends ChangeNotifier {
   Future<void> _ejecutar(Future<void> Function() accion) async {
     _cargando = true;
     _error = null;
+    _errorExcepcion = null;
     notifyListeners();
 
     try {
       await accion();
     } on DomainException catch (error) {
+      _errorExcepcion = error;
       _error = error.message;
     } catch (_) {
-      _error = 'Ocurrió un error inesperado.';
+      const error = DomainException('Ocurrió un error inesperado.');
+      _errorExcepcion = error;
+      _error = error.message;
     } finally {
       _cargando = false;
       notifyListeners();

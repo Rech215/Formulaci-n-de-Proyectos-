@@ -6,8 +6,14 @@ import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 
 import '../../core/theme/app_colors.dart';
+import '../../domain/repositories/historial_repository.dart';
+import '../../domain/repositories/local_usage_repository.dart';
+import '../../domain/services/image_editor_service.dart';
+import '../../injection.dart';
 import '../state/analysis_provider.dart';
 import '../state/session_provider.dart';
+import '../widgets/error_feedback.dart';
+import '../widgets/shimmer_loading.dart';
 
 /// Pantalla de escaneo de tareas.
 ///
@@ -25,6 +31,8 @@ class _ScanViewState extends State<ScanView> {
   XFile? _imagen;
   String? _errorPicker;
   String _hijoSeleccionado = '';
+  int? _consultasRestantes;
+  String? _padreIdConsultas;
 
   @override
   void initState() {
@@ -35,20 +43,94 @@ class _ScanViewState extends State<ScanView> {
     }
   }
 
-  Future<void> _tomarFoto() async {
-    try {
-      final foto = await _picker.pickImage(
-        source: ImageSource.camera,
-        maxWidth: 1920,
-        imageQuality: 85,
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final padre = context.watch<SessionProvider>().padre;
+    if (padre != null && padre.id != _padreIdConsultas) {
+      _padreIdConsultas = padre.id;
+      _cargarConsultas(padre.id);
+    }
+  }
+
+  bool get _bloqueado {
+    if (context.read<SessionProvider>().suscripcion?.esPremium ?? false) {
+      return false;
+    }
+    return (_consultasRestantes ??
+            LocalUsageRepository.consultasGratuitasIniciales) <=
+        0;
+  }
+
+  Future<void> _cargarConsultas(String padreId) async {
+    final restantes =
+        await getIt<LocalUsageRepository>().obtenerRestantes(padreId);
+    if (!mounted || _padreIdConsultas != padreId) return;
+    setState(() => _consultasRestantes = restantes);
+  }
+
+  Future<bool> _verificarAcceso() async {
+    final session = context.read<SessionProvider>();
+    final padre = session.padre;
+
+    if (padre == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Inicia sesión para escanear tareas.')),
       );
-      if (foto != null) {
-        setState(() {
-          _imagen = foto;
-          _errorPicker = null;
-        });
-      }
+      return false;
+    }
+
+    if (session.suscripcion?.esPremium ?? false) return true;
+
+    final restantes =
+        await getIt<LocalUsageRepository>().obtenerRestantes(padre.id);
+    if (!mounted) return false;
+    setState(() => _consultasRestantes = restantes);
+
+    if (restantes > 0) return true;
+
+    _irAPaywall();
+    return false;
+  }
+
+  void _irAPaywall() {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text(
+          'Usaste tus 5 consultas gratuitas. '
+          'Pásate a Premium para seguir escaneando.',
+        ),
+      ),
+    );
+    context.go('/planes');
+  }
+
+  Future<XFile?> _capturarYRecortar(ImageSource source) async {
+    final foto = await _picker.pickImage(
+      source: source,
+      maxWidth: 2048,
+      imageQuality: 90,
+    );
+    if (foto == null) return null;
+
+    final recortada = await getIt<ImageEditorService>().recortar(
+      sourcePath: foto.path,
+    );
+    return XFile(recortada ?? foto.path);
+  }
+
+  Future<void> _tomarFoto() async {
+    if (!await _verificarAcceso()) return;
+
+    try {
+      final foto = await _capturarYRecortar(ImageSource.camera);
+      if (foto == null || !mounted) return;
+      setState(() {
+        _imagen = foto;
+        _errorPicker = null;
+      });
     } catch (e) {
+      if (!mounted) return;
       setState(() {
         _errorPicker = 'No se pudo acceder a la cámara. '
             'Verifica los permisos o usa la galería.';
@@ -57,19 +139,17 @@ class _ScanViewState extends State<ScanView> {
   }
 
   Future<void> _abrirGaleria() async {
+    if (!await _verificarAcceso()) return;
+
     try {
-      final foto = await _picker.pickImage(
-        source: ImageSource.gallery,
-        maxWidth: 1920,
-        imageQuality: 85,
-      );
-      if (foto != null) {
-        setState(() {
-          _imagen = foto;
-          _errorPicker = null;
-        });
-      }
+      final foto = await _capturarYRecortar(ImageSource.gallery);
+      if (foto == null || !mounted) return;
+      setState(() {
+        _imagen = foto;
+        _errorPicker = null;
+      });
     } catch (e) {
+      if (!mounted) return;
       setState(() {
         _errorPicker = 'No se pudo acceder a la galería. '
             'Verifica los permisos.';
@@ -83,14 +163,38 @@ class _ScanViewState extends State<ScanView> {
     final padre = session.padre;
     if (padre == null || _imagen == null) return;
 
+    if (!await _verificarAcceso()) return;
+
     await analysis.analizarTarea(
       padreId: padre.id,
       imagenPath: _imagen!.path,
       nombreHijo: _hijoSeleccionado,
     );
 
-    if (mounted) {
+    if (analysis.estado == EstadoAnalisis.completado) {
+      final tarea = analysis.tareaActual;
+      if (tarea != null) {
+        await getIt<HistorialRepository>().guardar(padre.id, tarea);
+      }
+
+      if (!(session.suscripcion?.esPremium ?? false)) {
+        final restantes =
+            await getIt<LocalUsageRepository>().consumir(padre.id);
+        if (mounted) setState(() => _consultasRestantes = restantes);
+      }
+
       await session.recargar();
+    }
+
+    if (!mounted) return;
+
+    if (analysis.estado == EstadoAnalisis.error) {
+      ErrorFeedback.show(context, analysis.errorExcepcion);
+      return;
+    }
+
+    if (session.errorExcepcion != null) {
+      ErrorFeedback.show(context, session.errorExcepcion);
     }
   }
 
@@ -146,6 +250,13 @@ class _ScanViewState extends State<ScanView> {
   Widget _buildEncabezado() {
     final session = context.watch<SessionProvider>();
     final suscripcion = session.suscripcion;
+    final esPremium = suscripcion?.esPremium ?? false;
+    final restantes = esPremium
+        ? null
+        : (_consultasRestantes ??
+            suscripcion?.consultasRestantes ??
+            LocalUsageRepository.consultasGratuitasIniciales);
+    final bloqueado = !esPremium && (restantes ?? 0) <= 0;
 
     return Column(
       children: <Widget>[
@@ -174,39 +285,43 @@ class _ScanViewState extends State<ScanView> {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
             decoration: BoxDecoration(
-              color: suscripcion.esPremium
+              color: esPremium
                   ? AppColors.brand50
-                  : AppColors.yellow100,
+                  : (bloqueado ? AppColors.red100 : AppColors.yellow100),
               borderRadius: BorderRadius.circular(999),
               border: Border.all(
-                color: suscripcion.esPremium
+                color: esPremium
                     ? AppColors.brand200
-                    : AppColors.yellow600.withAlpha(77),
+                    : (bloqueado
+                        ? AppColors.red500.withAlpha(77)
+                        : AppColors.yellow600.withAlpha(77)),
               ),
             ),
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: <Widget>[
                 Icon(
-                  suscripcion.esPremium
+                  esPremium
                       ? Icons.all_inclusive
-                      : Icons.timer_outlined,
+                      : (bloqueado ? Icons.lock_outline : Icons.timer_outlined),
                   size: 16,
-                  color: suscripcion.esPremium
+                  color: esPremium
                       ? AppColors.brand600
-                      : AppColors.yellow600,
+                      : (bloqueado ? AppColors.red600 : AppColors.yellow600),
                 ),
                 const SizedBox(width: 6),
                 Text(
-                  suscripcion.esPremium
+                  esPremium
                       ? 'Consultas ilimitadas'
-                      : 'Te quedan ${suscripcion.consultasRestantes ?? 0} consultas gratuitas',
+                      : (bloqueado
+                          ? 'Sin consultas gratuitas'
+                          : 'Te quedan $restantes consultas gratuitas'),
                   style: TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.w600,
-                    color: suscripcion.esPremium
+                    color: esPremium
                         ? AppColors.brand700
-                        : AppColors.yellow600,
+                        : (bloqueado ? AppColors.red600 : AppColors.yellow600),
                   ),
                 ),
               ],
@@ -270,12 +385,16 @@ class _ScanViewState extends State<ScanView> {
                 ),
               ),
               const SizedBox(height: 8),
-              const Padding(
-                padding: EdgeInsets.symmetric(horizontal: 32),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 32),
                 child: Text(
-                  'Toma una foto o selecciona una imagen de la galería\npara comenzar el análisis.',
+                  _bloqueado
+                      ? 'Usaste tus 5 consultas gratuitas. '
+                          'Pásate a Premium para seguir acompañando a tu hijo.'
+                      : 'Toma una foto o selecciona una imagen de la galería\n'
+                          'para comenzar el análisis.',
                   textAlign: TextAlign.center,
-                  style: TextStyle(
+                  style: const TextStyle(
                     color: AppColors.slate500,
                     fontSize: 14,
                     height: 1.5,
@@ -283,45 +402,63 @@ class _ScanViewState extends State<ScanView> {
                 ),
               ),
               const SizedBox(height: 28),
-              Wrap(
-                spacing: 12,
-                runSpacing: 12,
-                alignment: WrapAlignment.center,
-                children: <Widget>[
-                  FilledButton.icon(
-                    onPressed: _tomarFoto,
-                    icon: const Icon(Icons.photo_camera, size: 20),
-                    label: const Text('Cámara'),
-                    style: FilledButton.styleFrom(
-                      backgroundColor: AppColors.brand600,
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 28,
-                        vertical: 16,
-                      ),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(999),
-                      ),
+              if (_bloqueado)
+                FilledButton.icon(
+                  onPressed: () => context.go('/planes'),
+                  icon: const Icon(Icons.workspace_premium, size: 20),
+                  label: const Text('Ver planes Premium'),
+                  style: FilledButton.styleFrom(
+                    backgroundColor: AppColors.brand600,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 28,
+                      vertical: 16,
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(999),
                     ),
                   ),
-                  OutlinedButton.icon(
-                    onPressed: _abrirGaleria,
-                    icon: const Icon(Icons.photo_library_outlined, size: 20),
-                    label: const Text('Galería'),
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: AppColors.brand700,
-                      side: const BorderSide(color: AppColors.brand200),
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 28,
-                        vertical: 16,
-                      ),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(999),
+                )
+              else
+                Wrap(
+                  spacing: 12,
+                  runSpacing: 12,
+                  alignment: WrapAlignment.center,
+                  children: <Widget>[
+                    FilledButton.icon(
+                      onPressed: _tomarFoto,
+                      icon: const Icon(Icons.photo_camera, size: 20),
+                      label: const Text('Cámara'),
+                      style: FilledButton.styleFrom(
+                        backgroundColor: AppColors.brand600,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 28,
+                          vertical: 16,
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(999),
+                        ),
                       ),
                     ),
-                  ),
-                ],
-              ),
+                    OutlinedButton.icon(
+                      onPressed: _abrirGaleria,
+                      icon: const Icon(Icons.photo_library_outlined, size: 20),
+                      label: const Text('Galería'),
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: AppColors.brand700,
+                        side: const BorderSide(color: AppColors.brand200),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 28,
+                          vertical: 16,
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(999),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
             ],
           ),
         ),
@@ -335,7 +472,8 @@ class _ScanViewState extends State<ScanView> {
             ),
             child: Row(
               children: <Widget>[
-                const Icon(Icons.warning_amber, color: AppColors.red600, size: 20),
+                const Icon(Icons.warning_amber,
+                    color: AppColors.red600, size: 20),
                 const SizedBox(width: 10),
                 Expanded(
                   child: Text(
@@ -599,104 +737,26 @@ class _ScanViewState extends State<ScanView> {
           ),
         const SizedBox(height: 28),
 
-        // Indicador de carga
-        Container(
-          width: double.infinity,
-          padding: const EdgeInsets.symmetric(vertical: 40, horizontal: 24),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(24),
-            border: Border.all(color: AppColors.brand200),
-            boxShadow: <BoxShadow>[
-              BoxShadow(
-                color: AppColors.brand500.withAlpha(31),
-                blurRadius: 24,
-                offset: const Offset(0, 8),
-              ),
-            ],
-          ),
-          child: Column(
-            children: <Widget>[
-              const SizedBox(
-                width: 56,
-                height: 56,
-                child: CircularProgressIndicator(
-                  strokeWidth: 4,
-                  color: AppColors.brand500,
-                  backgroundColor: AppColors.brand100,
-                ),
-              ),
-              const SizedBox(height: 24),
-              const Text(
-                'Analizando la tarea...',
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.w800,
-                  color: AppColors.slate900,
-                ),
-              ),
-              const SizedBox(height: 8),
-              const Text(
-                'Identificando materia, método SEP\ny generando preguntas guía...',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  color: AppColors.slate500,
-                  fontSize: 14,
-                  height: 1.5,
-                ),
-              ),
-              const SizedBox(height: 20),
-              _buildProgresoSimulado(),
-            ],
+        const Text(
+          'Analizando la tarea...',
+          style: TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.w800,
+            color: AppColors.slate900,
           ),
         ),
-      ],
-    );
-  }
-
-  Widget _buildProgresoSimulado() {
-    return Column(
-      children: <Widget>[
-        for (final paso in const <_PasoProgreso>[
-          _PasoProgreso('Leyendo imagen', Icons.image_search, true),
-          _PasoProgreso('Detectando materia', Icons.category_outlined, true),
-          _PasoProgreso('Consultando método SEP', Icons.school_outlined, false),
-          _PasoProgreso('Generando preguntas guía', Icons.chat_outlined, false),
-        ])
-          Padding(
-            padding: const EdgeInsets.only(bottom: 8),
-            child: Row(
-              children: <Widget>[
-                Container(
-                  width: 28,
-                  height: 28,
-                  decoration: BoxDecoration(
-                    color: paso.activo ? AppColors.brand100 : AppColors.slate100,
-                    shape: BoxShape.circle,
-                  ),
-                  child: Icon(
-                    paso.activo ? Icons.check : paso.icono,
-                    size: 14,
-                    color: paso.activo
-                        ? AppColors.brand600
-                        : AppColors.slate400,
-                  ),
-                ),
-                const SizedBox(width: 10),
-                Text(
-                  paso.label,
-                  style: TextStyle(
-                    color: paso.activo
-                        ? AppColors.brand700
-                        : AppColors.slate400,
-                    fontSize: 13,
-                    fontWeight:
-                        paso.activo ? FontWeight.w600 : FontWeight.w400,
-                  ),
-                ),
-              ],
-            ),
+        const SizedBox(height: 8),
+        const Text(
+          'Identificando materia, método SEP\ny generando preguntas guía...',
+          textAlign: TextAlign.center,
+          style: TextStyle(
+            color: AppColors.slate500,
+            fontSize: 14,
+            height: 1.5,
           ),
+        ),
+        const SizedBox(height: 20),
+        const AnalysisLoadingSkeleton(),
       ],
     );
   }
@@ -1015,8 +1075,8 @@ class _ScanViewState extends State<ScanView> {
               style: OutlinedButton.styleFrom(
                 foregroundColor: AppColors.slate600,
                 side: const BorderSide(color: AppColors.slate200),
-                padding: const EdgeInsets.symmetric(
-                    vertical: 16, horizontal: 20),
+                padding:
+                    const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(14),
                 ),
@@ -1124,16 +1184,3 @@ class _ScanViewState extends State<ScanView> {
     );
   }
 }
-
-// ═════════════════════════════════════════════════════════════════════════════
-// Modelos auxiliares internos
-// ═════════════════════════════════════════════════════════════════════════════
-
-class _PasoProgreso {
-  const _PasoProgreso(this.label, this.icono, this.activo);
-
-  final String label;
-  final IconData icono;
-  final bool activo;
-}
-

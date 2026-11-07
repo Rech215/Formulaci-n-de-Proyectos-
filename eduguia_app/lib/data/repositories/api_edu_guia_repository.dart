@@ -7,7 +7,7 @@ import '../../domain/repositories/edu_guia_repository.dart';
 import '../remote/api_client.dart';
 import '../remote/api_exception.dart';
 
-class ApiEduGuiaRepository implements EduGuiaRepository {
+class ApiEduGuiaRepository implements BaseEduGuiaRepository {
   ApiEduGuiaRepository({required ApiClient apiClient}) : _api = apiClient;
 
   final ApiClient _api;

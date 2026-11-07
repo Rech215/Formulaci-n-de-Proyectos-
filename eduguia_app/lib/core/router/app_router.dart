@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../presentation/views/historial_view.dart';
 import '../../presentation/views/home_view.dart';
 import '../../presentation/views/how_it_works_view.dart';
 import '../../presentation/views/not_found_view.dart';
@@ -26,14 +27,12 @@ abstract class AppRouter {
           GoRoute(
             path: '/inicio',
             name: 'inicio',
-            pageBuilder: (context, state) =>
-                _page(state, const HomeView()),
+            pageBuilder: (context, state) => _page(state, const HomeView()),
           ),
           GoRoute(
             path: '/problema',
             name: 'problema',
-            pageBuilder: (context, state) =>
-                _page(state, const ProblemView()),
+            pageBuilder: (context, state) => _page(state, const ProblemView()),
           ),
           GoRoute(
             path: '/como-funciona',
@@ -44,14 +43,18 @@ abstract class AppRouter {
           GoRoute(
             path: '/planes',
             name: 'planes',
-            pageBuilder: (context, state) =>
-                _page(state, const PricingView()),
+            pageBuilder: (context, state) => _page(state, const PricingView()),
           ),
           GoRoute(
             path: '/escanear',
             name: 'escanear',
+            pageBuilder: (context, state) => _page(state, const ScanView()),
+          ),
+          GoRoute(
+            path: '/historial',
+            name: 'historial',
             pageBuilder: (context, state) =>
-                _page(state, const ScanView()),
+                _page(state, const HistorialView()),
           ),
         ],
       ),

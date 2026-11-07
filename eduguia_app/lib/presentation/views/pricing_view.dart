@@ -6,6 +6,7 @@ import '../../core/theme/app_colors.dart';
 import '../../domain/entities/plan.dart';
 import '../../domain/entities/suscripcion.dart';
 import '../state/session_provider.dart';
+import '../widgets/error_feedback.dart';
 import '../widgets/section_header.dart';
 
 class PricingView extends StatefulWidget {
@@ -100,16 +101,21 @@ class _PricingViewState extends State<PricingView> {
     if (!mounted) return;
 
     final error = session.error;
+    if (error != null) {
+      ErrorFeedback.show(context, session.errorExcepcion);
+      session.limpiarError();
+      return;
+    }
+
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(
-          error ?? (session.suscripcion?.esPremium == true
+          session.suscripcion?.esPremium == true
               ? 'Compras restauradas. Tu plan Premium está activo.'
-              : 'No encontramos una suscripción Premium activa.'),
+              : 'No encontramos una suscripción Premium activa.',
         ),
       ),
     );
-    if (error != null) session.limpiarError();
   }
 
   Future<void> _seleccionarPlan(Plan plan) async {
@@ -130,9 +136,7 @@ class _PricingViewState extends State<PricingView> {
 
       final error = session.error;
       if (error != null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(error)),
-        );
+        ErrorFeedback.show(context, session.errorExcepcion);
         session.limpiarError();
         return;
       }

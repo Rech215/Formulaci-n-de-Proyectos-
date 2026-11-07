@@ -1,10 +1,10 @@
-import 'dart:async';
 import 'dart:convert';
 
 import 'package:http/http.dart' as http;
 import 'package:http_parser/http_parser.dart';
 
 import 'api_exception.dart';
+import 'http_exception_handler.dart';
 import 'token_storage.dart';
 
 class ApiClient {
@@ -18,12 +18,12 @@ class ApiClient {
             : baseUrl,
         _tokenStorage = tokenStorage,
         _http = httpClient ?? http.Client(),
-        _timeout = timeout;
+        _handler = HttpExceptionHandler(timeout: timeout);
 
   final String baseUrl;
   final TokenStorage _tokenStorage;
   final http.Client _http;
-  final Duration _timeout;
+  final HttpExceptionHandler _handler;
 
   Uri _uri(String path) => Uri.parse('$baseUrl$path');
 
@@ -34,28 +34,6 @@ class ApiClient {
       if (conJson) 'Content-Type': 'application/json',
       if (token != null && token.isNotEmpty) 'Authorization': 'Bearer $token',
     };
-  }
-
-  Future<http.Response> _ejecutar(Future<http.Response> Function() accion) async {
-    try {
-      return await accion().timeout(_timeout);
-    } on TimeoutException {
-      throw const ApiException(
-        'La conexión tardó demasiado. Revisa tu internet e intenta de nuevo.',
-        code: 'TIEMPO_AGOTADO',
-      );
-    } on http.ClientException {
-      throw const ApiException(
-        'No pudimos conectar con el servidor de EduGuía.',
-        code: 'SIN_CONEXION',
-      );
-    } catch (error) {
-      if (error is ApiException) rethrow;
-      throw const ApiException(
-        'No pudimos conectar con el servidor de EduGuía.',
-        code: 'SIN_CONEXION',
-      );
-    }
   }
 
   Map<String, dynamic> _decodificar(http.Response response) {
@@ -79,18 +57,18 @@ class ApiClient {
 
     final error = cuerpo?['error'];
     final detalle = error is Map ? Map<String, dynamic>.from(error) : null;
-    final mensaje = detalle?['message']?.toString()
-        ?? 'El servidor respondió con un error (${response.statusCode}).';
+    final mensaje = detalle?['message']?.toString() ??
+        'El servidor respondió con un error (${response.statusCode}).';
 
     throw ApiException(
       mensaje,
       code: detalle?['code']?.toString() ?? 'ERROR_API',
-      status: response.statusCode,
+      statusCode: response.statusCode,
     );
   }
 
   Future<Map<String, dynamic>> getJson(String path) async {
-    final respuesta = await _ejecutar(() async {
+    final respuesta = await _handler.ejecutar(() async {
       return _http.get(_uri(path), headers: await _headers());
     });
     return _decodificar(respuesta);
@@ -100,7 +78,7 @@ class ApiClient {
     String path, {
     Map<String, dynamic>? body,
   }) async {
-    final respuesta = await _ejecutar(() async {
+    final respuesta = await _handler.ejecutar(() async {
       return _http.post(
         _uri(path),
         headers: await _headers(),
@@ -111,7 +89,7 @@ class ApiClient {
   }
 
   Future<Map<String, dynamic>> deleteJson(String path) async {
-    final respuesta = await _ejecutar(() async {
+    final respuesta = await _handler.ejecutar(() async {
       return _http.delete(_uri(path), headers: await _headers());
     });
     return _decodificar(respuesta);
@@ -123,39 +101,30 @@ class ApiClient {
     required String filePath,
     String fileField = 'imagen',
     String? mimeType,
-  }) async {
-    try {
-      final peticion = http.MultipartRequest('POST', _uri(path));
-      peticion.headers.addAll(await _headers(conJson: false));
-      peticion.fields.addAll(fields);
-      peticion.files.add(
-        await http.MultipartFile.fromPath(
-          fileField,
-          filePath,
-          contentType: _mediaType(filePath, mimeType),
-        ),
-      );
+  }) {
+    return _handler.ejecutar(
+      () async {
+        final peticion = http.MultipartRequest('POST', _uri(path));
+        peticion.headers.addAll(await _headers(conJson: false));
+        peticion.fields.addAll(fields);
+        peticion.files.add(
+          await http.MultipartFile.fromPath(
+            fileField,
+            filePath,
+            contentType: _mediaType(filePath, mimeType),
+          ),
+        );
 
-      final streamed = await peticion.send().timeout(_timeout);
-      final respuesta = await http.Response.fromStream(streamed);
-      return _decodificar(respuesta);
-    } on TimeoutException {
-      throw const ApiException(
-        'El análisis tardó demasiado. Intenta con una foto más ligera.',
-        code: 'TIEMPO_AGOTADO',
-      );
-    } on http.ClientException {
-      throw const ApiException(
-        'No pudimos enviar la foto al servidor de EduGuía.',
-        code: 'SIN_CONEXION',
-      );
-    } catch (error) {
-      if (error is ApiException) rethrow;
-      throw const ApiException(
-        'No pudimos enviar la foto al servidor de EduGuía.',
-        code: 'SIN_CONEXION',
-      );
-    }
+        final streamed = await peticion.send();
+        final respuesta = await http.Response.fromStream(streamed);
+        return _decodificar(respuesta);
+      },
+      timeoutMessage:
+          'El análisis tardó demasiado. Intenta con una foto más ligera.',
+      networkMessage:
+          'No pudimos enviar la foto al servidor de EduGuía. '
+          'Revisa tu internet e intenta de nuevo.',
+    );
   }
 
   MediaType _mediaType(String filePath, String? mimeType) {

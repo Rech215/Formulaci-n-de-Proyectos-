@@ -6,7 +6,7 @@ import '../../domain/entities/suscripcion.dart';
 import '../../domain/entities/tarea.dart';
 import '../../domain/repositories/edu_guia_repository.dart';
 
-class InMemoryEduGuiaRepository implements EduGuiaRepository {
+class InMemoryEduGuiaRepository implements BaseEduGuiaRepository {
   final Map<String, Padre> _padres = <String, Padre>{};
   final Map<String, Tarea> _tareas = <String, Tarea>{};
   final Map<String, Suscripcion> _suscripciones = <String, Suscripcion>{};

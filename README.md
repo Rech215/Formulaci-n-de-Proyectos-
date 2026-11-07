@@ -45,7 +45,7 @@ Copy-Item .env.example .env
 npm run dev
 ```
 
-La API queda en `http://localhost:4000/api`.
+La API queda en `http://localhost:3000/api`.
 Comprueba el servicio con `GET /api/salud`.
 
 Variables principales:
@@ -70,27 +70,36 @@ npm run check
 
 ```powershell
 cd eduguia_app
+Copy-Item .env.example .env
+# Edita .env con la IP LAN de tu equipo y el puerto de tu backend
 flutter pub get
-flutter run --dart-define=API_BASE_URL=http://10.0.2.2:4000/api
+flutter run
 ```
 
-En emulador Android usa `10.0.2.2`; en simulador iOS usa
-`http://127.0.0.1:4000/api`. En un dispositivo físico usa la IP LAN del equipo.
+El archivo `.env` define la configuración de desarrollo:
+
+- `API_URL`: URL base del backend. En un dispositivo Android físico por USB
+  usa la IP LAN del equipo (por ejemplo `http://192.168.1.50:3000/api`), no
+  `localhost`. En emulador Android usa `http://10.0.2.2:3000/api`; en simulador
+  iOS usa `http://127.0.0.1:3000/api`. Ajusta el puerto si tu backend usa otro.
+- `USE_MOCKS`: `false` (valor por defecto) usa `ApiEduGuiaRepository` contra
+  Node.js; `true` vuelve a `MockEduGuiaRepository` para trabajar sin backend.
+- `API_TIMEOUT_SECONDS`: tiempo máximo de espera de las llamadas HTTP.
+
+También puedes sobrescribir valores sin tocar `.env`:
+
+```powershell
+flutter run --dart-define=API_BASE_URL=http://10.0.2.2:3000/api
+flutter run --dart-define=EDUGUIA_USAR_MOCK=false
+```
 
 Para compras, agrega las llaves de RevenueCat:
 
 ```powershell
 flutter run `
-  --dart-define=API_BASE_URL=http://10.0.2.2:4000/api `
   --dart-define=REVENUECAT_GOOGLE_API_KEY=goog_xxx `
   --dart-define=REVENUECAT_APPLE_API_KEY=appl_xxx `
   --dart-define=REVENUECAT_ENTITLEMENT_ID=premium
-```
-
-Modo sin backend, útil para pruebas visuales:
-
-```powershell
-flutter run --dart-define=EDUGUIA_USAR_MOCK=true
 ```
 
 En builds de depuración, la app crea una sesión demo con

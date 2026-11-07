@@ -24,11 +24,13 @@ class AnalysisProvider extends ChangeNotifier {
   EstadoAnalisis _estado = EstadoAnalisis.inactivo;
   Tarea? _tareaActual;
   String? _error;
+  DomainException? _errorExcepcion;
   String? _imagenPath;
 
   EstadoAnalisis get estado => _estado;
   Tarea? get tareaActual => _tareaActual;
   String? get error => _error;
+  DomainException? get errorExcepcion => _errorExcepcion;
   String? get imagenPath => _imagenPath;
 
   Future<void> analizarTarea({
@@ -39,6 +41,7 @@ class AnalysisProvider extends ChangeNotifier {
   }) async {
     _estado = EstadoAnalisis.analizando;
     _error = null;
+    _errorExcepcion = null;
     _tareaActual = null;
     _imagenPath = imagenPath;
     notifyListeners();
@@ -59,12 +62,16 @@ class AnalysisProvider extends ChangeNotifier {
       _estado = EstadoAnalisis.completado;
       notifyListeners();
     } on DomainException catch (error) {
+      _errorExcepcion = error;
       _error = error.message;
       _estado = EstadoAnalisis.error;
       notifyListeners();
     } catch (_) {
-      _error = 'Ocurrió un error inesperado al analizar la tarea. '
-          'Intenta de nuevo.';
+      const error = DomainException(
+        'Ocurrió un error inesperado al analizar la tarea. Intenta de nuevo.',
+      );
+      _errorExcepcion = error;
+      _error = error.message;
       _estado = EstadoAnalisis.error;
       notifyListeners();
     }
@@ -74,6 +81,7 @@ class AnalysisProvider extends ChangeNotifier {
     _estado = EstadoAnalisis.inactivo;
     _tareaActual = null;
     _error = null;
+    _errorExcepcion = null;
     _imagenPath = null;
     notifyListeners();
   }
@@ -81,6 +89,7 @@ class AnalysisProvider extends ChangeNotifier {
   void limpiarError() {
     if (_error == null) return;
     _error = null;
+    _errorExcepcion = null;
     notifyListeners();
   }
 }

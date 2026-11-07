@@ -1,6 +1,8 @@
 .dart_tool/
 .packages
 build/
+.env
+!.env.example
 .flutter-plugins
 .flutter-plugins-dependencies
 *.iml

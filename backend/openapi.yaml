@@ -7,7 +7,7 @@ info:
     gestionar la suscripción Premium. La imagen de la tarea nunca se guarda:
     se procesa en memoria y se sobrescribe con ceros al terminar.
 servers:
-  - url: http://localhost:4000/api
+  - url: http://localhost:3000/api
     description: Desarrollo local
 tags:
   - name: Salud

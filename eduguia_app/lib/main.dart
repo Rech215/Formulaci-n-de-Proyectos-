@@ -9,24 +9,23 @@ import 'injection.dart';
 import 'presentation/state/analysis_provider.dart';
 import 'presentation/state/session_provider.dart';
 
-void main() {
+Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  final injection = AppInjection();
+  await configureDependencies();
+
+  final session = getIt<SessionProvider>();
+  final analysis = getIt<AnalysisProvider>();
 
   runApp(
     MultiProvider(
       providers: [
-        ChangeNotifierProvider<SessionProvider>.value(
-          value: injection.session,
-        ),
-        ChangeNotifierProvider<AnalysisProvider>.value(
-          value: injection.analysis,
-        ),
+        ChangeNotifierProvider<SessionProvider>.value(value: session),
+        ChangeNotifierProvider<AnalysisProvider>.value(value: analysis),
       ],
       child: EduGuiaApp(router: AppRouter.router),
     ),
   );
 
-  unawaited(injection.session.initialize());
+  unawaited(session.initialize());
 }

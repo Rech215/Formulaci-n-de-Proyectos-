@@ -5,7 +5,7 @@ const envSchema = z.object({
   NODE_ENV: z
     .enum(['development', 'test', 'production'])
     .default('development'),
-  PORT: z.coerce.number().int().positive().default(4000),
+  PORT: z.coerce.number().int().positive().default(3000),
   CORS_ORIGIN: z.string().default('*'),
   MONGODB_URI: z.string().min(1, 'MONGODB_URI es obligatorio.'),
   JWT_SECRET: z.string().min(32, 'JWT_SECRET debe tener al menos 32 caracteres.'),

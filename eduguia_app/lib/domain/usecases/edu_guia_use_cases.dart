@@ -8,7 +8,7 @@ import '../repositories/edu_guia_repository.dart';
 class RegistrarPadre {
   const RegistrarPadre(this._repository);
 
-  final EduGuiaRepository _repository;
+  final BaseEduGuiaRepository _repository;
 
   Future<Padre> call({
     required String nombre,
@@ -28,7 +28,7 @@ class RegistrarPadre {
 class IniciarSesion {
   const IniciarSesion(this._repository);
 
-  final EduGuiaRepository _repository;
+  final BaseEduGuiaRepository _repository;
 
   Future<Padre> call({
     required String correo,
@@ -41,7 +41,7 @@ class IniciarSesion {
 class RestaurarSesion {
   const RestaurarSesion(this._repository);
 
-  final EduGuiaRepository _repository;
+  final BaseEduGuiaRepository _repository;
 
   Future<Padre?> call() => _repository.restaurarSesion();
 }
@@ -49,7 +49,7 @@ class RestaurarSesion {
 class CerrarSesion {
   const CerrarSesion(this._repository);
 
-  final EduGuiaRepository _repository;
+  final BaseEduGuiaRepository _repository;
 
   Future<void> call() => _repository.cerrarSesion();
 }
@@ -57,7 +57,7 @@ class CerrarSesion {
 class ObtenerPadre {
   const ObtenerPadre(this._repository);
 
-  final EduGuiaRepository _repository;
+  final BaseEduGuiaRepository _repository;
 
   Future<Padre> call(String padreId) => _repository.obtenerPadre(padreId);
 }
@@ -65,7 +65,7 @@ class ObtenerPadre {
 class AgregarHijo {
   const AgregarHijo(this._repository);
 
-  final EduGuiaRepository _repository;
+  final BaseEduGuiaRepository _repository;
 
   Future<Padre> call(String padreId, Hijo hijo) {
     return _repository.agregarHijo(padreId, hijo);
@@ -75,7 +75,7 @@ class AgregarHijo {
 class EliminarHijo {
   const EliminarHijo(this._repository);
 
-  final EduGuiaRepository _repository;
+  final BaseEduGuiaRepository _repository;
 
   Future<Padre> call(String padreId, String nombreHijo) {
     return _repository.eliminarHijo(padreId, nombreHijo);
@@ -85,7 +85,7 @@ class EliminarHijo {
 class CrearTarea {
   const CrearTarea(this._repository);
 
-  final EduGuiaRepository _repository;
+  final BaseEduGuiaRepository _repository;
 
   Future<Tarea> call({
     required String padreId,
@@ -103,7 +103,7 @@ class CrearTarea {
 class IniciarAnalisisTarea {
   const IniciarAnalisisTarea(this._repository);
 
-  final EduGuiaRepository _repository;
+  final BaseEduGuiaRepository _repository;
 
   Future<Tarea> call(String tareaId) {
     return _repository.iniciarAnalisisTarea(tareaId);
@@ -113,7 +113,7 @@ class IniciarAnalisisTarea {
 class AnalizarTarea {
   const AnalizarTarea(this._repository);
 
-  final EduGuiaRepository _repository;
+  final BaseEduGuiaRepository _repository;
 
   Future<Tarea> call({
     required String padreId,
@@ -133,7 +133,7 @@ class AnalizarTarea {
 class CompletarAnalisisTarea {
   const CompletarAnalisisTarea(this._repository);
 
-  final EduGuiaRepository _repository;
+  final BaseEduGuiaRepository _repository;
 
   Future<Tarea> call(String tareaId, ResultadoAnalisis resultado) {
     return _repository.completarAnalisisTarea(tareaId, resultado);
@@ -143,7 +143,7 @@ class CompletarAnalisisTarea {
 class MarcarErrorTarea {
   const MarcarErrorTarea(this._repository);
 
-  final EduGuiaRepository _repository;
+  final BaseEduGuiaRepository _repository;
 
   Future<Tarea> call(String tareaId, String mensaje) {
     return _repository.marcarErrorTarea(tareaId, mensaje);
@@ -153,7 +153,7 @@ class MarcarErrorTarea {
 class ObtenerTareasPorPadre {
   const ObtenerTareasPorPadre(this._repository);
 
-  final EduGuiaRepository _repository;
+  final BaseEduGuiaRepository _repository;
 
   Future<List<Tarea>> call(String padreId) {
     return _repository.obtenerTareasPorPadre(padreId);
@@ -163,7 +163,7 @@ class ObtenerTareasPorPadre {
 class ObtenerTarea {
   const ObtenerTarea(this._repository);
 
-  final EduGuiaRepository _repository;
+  final BaseEduGuiaRepository _repository;
 
   Future<Tarea> call(String tareaId) => _repository.obtenerTarea(tareaId);
 }
@@ -171,7 +171,7 @@ class ObtenerTarea {
 class ObtenerSuscripcion {
   const ObtenerSuscripcion(this._repository);
 
-  final EduGuiaRepository _repository;
+  final BaseEduGuiaRepository _repository;
 
   Future<Suscripcion> call(String padreId) {
     return _repository.obtenerSuscripcion(padreId);
@@ -181,7 +181,7 @@ class ObtenerSuscripcion {
 class ValidarSuscripcion {
   const ValidarSuscripcion(this._repository);
 
-  final EduGuiaRepository _repository;
+  final BaseEduGuiaRepository _repository;
 
   Future<Suscripcion> call() => _repository.validarSuscripcion();
 }
@@ -189,7 +189,7 @@ class ValidarSuscripcion {
 class ActualizarPlan {
   const ActualizarPlan(this._repository);
 
-  final EduGuiaRepository _repository;
+  final BaseEduGuiaRepository _repository;
 
   Future<Suscripcion> call(String padreId, TipoPlan nuevoPlan) {
     return _repository.actualizarPlan(padreId, nuevoPlan);
@@ -199,7 +199,7 @@ class ActualizarPlan {
 class CancelarSuscripcion {
   const CancelarSuscripcion(this._repository);
 
-  final EduGuiaRepository _repository;
+  final BaseEduGuiaRepository _repository;
 
   Future<Suscripcion> call(String padreId) {
     return _repository.cancelarSuscripcion(padreId);
@@ -209,7 +209,7 @@ class CancelarSuscripcion {
 class PuedeConsultar {
   const PuedeConsultar(this._repository);
 
-  final EduGuiaRepository _repository;
+  final BaseEduGuiaRepository _repository;
 
   Future<bool> call(String padreId) => _repository.puedeConsultar(padreId);
 }
@@ -217,7 +217,7 @@ class PuedeConsultar {
 class ObtenerResumenUso {
   const ObtenerResumenUso(this._repository);
 
-  final EduGuiaRepository _repository;
+  final BaseEduGuiaRepository _repository;
 
   Future<ResumenUso> call(String padreId) {
     return _repository.obtenerResumenUso(padreId);
@@ -225,7 +225,7 @@ class ObtenerResumenUso {
 }
 
 class EduGuiaUseCases {
-  EduGuiaUseCases(EduGuiaRepository repository)
+  EduGuiaUseCases(BaseEduGuiaRepository repository)
       : registrarPadre = RegistrarPadre(repository),
         iniciarSesion = IniciarSesion(repository),
         restaurarSesion = RestaurarSesion(repository),

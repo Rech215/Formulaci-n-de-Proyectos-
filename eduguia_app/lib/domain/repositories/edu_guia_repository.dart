@@ -4,7 +4,11 @@ import '../entities/resumen_uso.dart';
 import '../entities/suscripcion.dart';
 import '../entities/tarea.dart';
 
-abstract class EduGuiaRepository {
+/// Contrato base de acceso a datos de EduGuía.
+///
+/// Las implementaciones concretas son [MockEduGuiaRepository] (datos en
+/// memoria) y [ApiEduGuiaRepository] (backend Node.js).
+abstract class BaseEduGuiaRepository {
   Future<Padre> registrarPadre({
     required String nombre,
     required String correo,
@@ -65,3 +69,6 @@ abstract class EduGuiaRepository {
 
   Future<ResumenUso> obtenerResumenUso(String padreId);
 }
+
+/// Alias retrocompatible para el contrato del repositorio.
+typedef EduGuiaRepository = BaseEduGuiaRepository;
