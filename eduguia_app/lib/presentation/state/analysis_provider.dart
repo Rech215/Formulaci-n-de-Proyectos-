@@ -12,9 +12,14 @@ enum EstadoAnalisis {
 }
 
 class AnalysisProvider extends ChangeNotifier {
-  AnalysisProvider({required EduGuiaUseCases useCases}) : _useCases = useCases;
+  AnalysisProvider({
+    required EduGuiaUseCases useCases,
+    Duration latenciaSimulada = Duration.zero,
+  })  : _useCases = useCases,
+        _latenciaSimulada = latenciaSimulada;
 
   final EduGuiaUseCases _useCases;
+  final Duration _latenciaSimulada;
 
   EstadoAnalisis _estado = EstadoAnalisis.inactivo;
   Tarea? _tareaActual;
@@ -39,6 +44,10 @@ class AnalysisProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
+      if (_latenciaSimulada > Duration.zero) {
+        await Future<void>.delayed(_latenciaSimulada);
+      }
+
       final tarea = await _useCases.analizarTarea(
         padreId: padreId,
         imagenPath: imagenPath,

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -11,7 +13,6 @@ void main() {
   WidgetsFlutterBinding.ensureInitialized();
 
   final injection = AppInjection();
-  injection.session.initialize();
 
   runApp(
     MultiProvider(
@@ -26,4 +27,6 @@ void main() {
       child: EduGuiaApp(router: AppRouter.router),
     ),
   );
+
+  unawaited(injection.session.initialize());
 }

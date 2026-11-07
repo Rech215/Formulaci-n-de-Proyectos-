@@ -24,7 +24,7 @@ class SessionProvider extends ChangeNotifier {
   static const String _demoCorreo = 'demo@eduguia.mx';
   static const String _demoPassword = 'demo12345';
 
-  bool get _demoAutoLogin => kDebugMode && _demoAutoLoginConfigurado;
+  bool get _demoAutoLogin => _demoAutoLoginConfigurado;
 
   final EduGuiaUseCases _useCases;
   final PagosRepository? _pagosRepository;
