@@ -1,5 +1,4 @@
 import 'package:eduguia_app/data/services/historial_service.dart';
-import 'package:eduguia_app/data/services/local_usage_service.dart';
 import 'package:eduguia_app/domain/entities/tarea.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -9,30 +8,6 @@ void main() {
 
   setUp(() {
     SharedPreferences.setMockInitialValues(<String, Object>{});
-  });
-
-  group('LocalUsageService', () {
-    test('inicializa en 5, consume y separa por padre', () async {
-      final servicio = LocalUsageService();
-
-      expect(await servicio.obtenerRestantes('padre-1'), 5);
-      expect(await servicio.consumir('padre-1'), 4);
-      expect(await servicio.obtenerRestantes('padre-1'), 4);
-      expect(await servicio.obtenerRestantes('padre-2'), 5);
-    });
-
-    test('no baja de cero y permite reiniciar', () async {
-      final servicio = LocalUsageService();
-
-      for (var i = 0; i < 7; i++) {
-        await servicio.consumir('padre-1');
-      }
-
-      expect(await servicio.obtenerRestantes('padre-1'), 0);
-
-      await servicio.reiniciar('padre-1');
-      expect(await servicio.obtenerRestantes('padre-1'), 5);
-    });
   });
 
   group('HistorialService', () {

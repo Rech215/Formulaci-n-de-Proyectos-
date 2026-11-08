@@ -229,10 +229,7 @@ class InMemoryEduGuiaRepository implements BaseEduGuiaRepository {
   }
 
   @override
-  Future<Suscripcion> actualizarPlan(
-    String padreId,
-    TipoPlan nuevoPlan,
-  ) async {
+  Future<Suscripcion> actualizarPlan(String padreId, TipoPlan nuevoPlan) async {
     final padre = _buscarPadre(padreId);
     final suscripcion = _buscarSuscripcion(padreId);
 

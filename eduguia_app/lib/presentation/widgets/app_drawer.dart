@@ -13,8 +13,7 @@ class AppDrawer extends StatelessWidget {
   Widget build(BuildContext context) {
     final session = context.watch<SessionProvider>();
     final padre = session.padre;
-    final suscripcion = session.suscripcion;
-    final restantes = suscripcion?.consultasRestantes;
+    final premium = session.esPremium;
 
     return Drawer(
       child: SafeArea(
@@ -51,27 +50,39 @@ class AppDrawer extends StatelessWidget {
                         fontSize: 13,
                       ),
                     ),
-                  if (suscripcion != null) ...<Widget>[
-                    const SizedBox(height: 12),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 6,
+                  const SizedBox(height: 12),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 6,
+                    ),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withAlpha(46),
+                      borderRadius: BorderRadius.circular(999),
+                    ),
+                    child: Text(
+                      premium
+                          ? 'Premium · Sin anuncios'
+                          : 'Gratis · Escaneos con anuncios',
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
                       ),
-                      decoration: BoxDecoration(
-                        color: Colors.white.withAlpha(46),
-                        borderRadius: BorderRadius.circular(999),
-                      ),
-                      child: Text(
-                        suscripcion.esPremium
-                            ? 'Premium · Consultas ilimitadas'
-                            : 'Gratuito · ${restantes ?? 0} de '
-                                '${suscripcion.limiteConsultas ?? 0} consultas restantes',
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 12,
-                          fontWeight: FontWeight.w600,
-                        ),
+                    ),
+                  ),
+                  if (padre != null && padre.hijos.isNotEmpty) ...<Widget>[
+                    const SizedBox(height: 10),
+                    Text(
+                      padre.hijos
+                          .map(
+                            (hijo) => '${hijo.nombre} · ${hijo.gradoEscolar}',
+                          )
+                          .join('\n'),
+                      style: TextStyle(
+                        color: Colors.white.withAlpha(204),
+                        fontSize: 12,
+                        height: 1.5,
                       ),
                     ),
                   ],
@@ -83,10 +94,7 @@ class AppDrawer extends StatelessWidget {
                 padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
                 child: Text(
                   session.error!,
-                  style: const TextStyle(
-                    color: AppColors.red600,
-                    fontSize: 12,
-                  ),
+                  style: const TextStyle(color: AppColors.red600, fontSize: 12),
                 ),
               ),
             Expanded(
@@ -101,19 +109,7 @@ class AppDrawer extends StatelessWidget {
                   ),
                   _drawerItem(
                     context,
-                    icon: Icons.report_problem_outlined,
-                    label: 'El problema',
-                    path: '/problema',
-                  ),
-                  _drawerItem(
-                    context,
-                    icon: Icons.auto_awesome_outlined,
-                    label: 'Cómo funciona',
-                    path: '/como-funciona',
-                  ),
-                  _drawerItem(
-                    context,
-                    icon: Icons.photo_camera_outlined,
+                    icon: Icons.document_scanner_outlined,
                     label: 'Escanear tarea',
                     path: '/escanear',
                   ),
@@ -126,22 +122,54 @@ class AppDrawer extends StatelessWidget {
                   _drawerItem(
                     context,
                     icon: Icons.workspace_premium_outlined,
-                    label: 'Planes y precios',
-                    path: '/planes',
+                    label: premium ? 'Tu plan Premium' : 'Quitar anuncios',
+                    path: '/premium',
                   ),
                   const Divider(height: 24),
-                  _infoItem(context, Icons.receipt_long_outlined,
-                      'Términos de servicio'),
-                  _infoItem(
-                      context, Icons.shield_outlined, 'Privacidad de datos'),
-                  _infoItem(context, Icons.mail_outline, 'Contacto'),
+                  _drawerItem(
+                    context,
+                    icon: Icons.shield_outlined,
+                    label: 'Aviso de privacidad',
+                    path: '/legal/privacidad',
+                  ),
+                  _drawerItem(
+                    context,
+                    icon: Icons.receipt_long_outlined,
+                    label: 'Términos de servicio',
+                    path: '/legal/terminos',
+                  ),
+                  ListTile(
+                    leading: const Icon(
+                      Icons.mail_outline,
+                      color: AppColors.slate600,
+                    ),
+                    title: const Text('Contacto'),
+                    onTap: () {
+                      final messenger = ScaffoldMessenger.of(context);
+                      Navigator.of(context).pop();
+                      messenger.showSnackBar(
+                        const SnackBar(
+                          content: Text('Escríbenos a hola@eduguia.mx'),
+                        ),
+                      );
+                    },
+                  ),
+                  const Divider(height: 24),
+                  ListTile(
+                    leading: const Icon(Icons.logout, color: AppColors.red600),
+                    title: const Text(
+                      'Cerrar sesión',
+                      style: TextStyle(color: AppColors.red600),
+                    ),
+                    onTap: () => _cerrarSesion(context, session),
+                  ),
                 ],
               ),
             ),
             const Padding(
               padding: EdgeInsets.all(16),
               child: Text(
-                '© 2026 Formulación de Proyectos\nEquipo UTM',
+                '© 2026 EduGuía\nAcompaña, no resuelvas.',
                 textAlign: TextAlign.center,
                 style: TextStyle(fontSize: 11, color: AppColors.slate500),
               ),
@@ -162,23 +190,44 @@ class AppDrawer extends StatelessWidget {
       leading: Icon(icon, color: AppColors.slate600),
       title: Text(label),
       onTap: () {
+        final router = GoRouter.of(context);
         Navigator.of(context).pop();
-        context.go(path);
+        router.go(path);
       },
     );
   }
 
-  Widget _infoItem(BuildContext context, IconData icon, String label) {
-    return ListTile(
-      leading: Icon(icon, color: AppColors.slate600),
-      title: Text(label),
-      onTap: () {
-        final messenger = ScaffoldMessenger.of(context);
-        Navigator.of(context).pop();
-        messenger.showSnackBar(
-          SnackBar(content: Text('$label: información próximamente.')),
-        );
-      },
+  Future<void> _cerrarSesion(
+    BuildContext context,
+    SessionProvider session,
+  ) async {
+    final navigator = Navigator.of(context);
+    final router = GoRouter.of(context);
+
+    final confirmado = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Cerrar sesión'),
+        content: const Text(
+          '¿Quieres salir de tu cuenta? Tu historial local se conservará.',
+        ),
+        actions: <Widget>[
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(false),
+            child: const Text('Cancelar'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(dialogContext).pop(true),
+            style: FilledButton.styleFrom(backgroundColor: AppColors.red600),
+            child: const Text('Salir'),
+          ),
+        ],
+      ),
     );
+
+    if (confirmado != true) return;
+    navigator.pop();
+    await session.cerrarSesion();
+    router.go('/login');
   }
 }

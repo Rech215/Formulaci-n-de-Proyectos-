@@ -1,8 +1,6 @@
 export const PLAN_GRATUITO = 'GRATUITO';
 export const PLAN_PREMIUM = 'PREMIUM';
 
-export const LIMITE_CONSULTAS_GRATUITO = 5;
-
 export const ESTADO_SUSCRIPCION = Object.freeze({
   ACTIVA: 'ACTIVA',
   CANCELADA: 'CANCELADA',
@@ -15,9 +13,12 @@ export function esPlanPremium(plan) {
 
 /**
  * Límite mensual del plan. `null` significa ilimitado.
+ *
+ * Los escaneos son ilimitados tanto en el plan gratuito (con anuncios en la
+ * app) como en Premium, por lo que esta función siempre devuelve `null`.
  */
-export function limiteDelPlan(plan) {
-  return esPlanPremium(plan) ? null : LIMITE_CONSULTAS_GRATUITO;
+export function limiteDelPlan() {
+  return null;
 }
 
 /**

@@ -1,12 +1,11 @@
 import {
   ESTADO_SUSCRIPCION,
-  LIMITE_CONSULTAS_GRATUITO,
   esPlanPremium,
   estaSuscripcionVigente,
   limiteDelPlan,
   periodoActual,
 } from '../../domain/suscripcion.js';
-import { AppError, LimitePlanError } from '../../domain/errors.js';
+import { AppError } from '../../domain/errors.js';
 import { serializarSuscripcion } from '../serializers.js';
 
 function idDe(padre) {
@@ -32,8 +31,9 @@ export function crearSuscripcionService({
       const suscripcion = await suscripcionRepository.obtenerOCrear(padreId);
 
       if (!estaSuscripcionVigente(suscripcion)) {
-        throw new LimitePlanError(
+        throw new AppError(
           'Tu suscripción no está activa. Renueva tu plan para continuar.',
+          { status: 402, code: 'SUSCRIPCION_INACTIVA' },
         );
       }
 
@@ -45,13 +45,6 @@ export function crearSuscripcionService({
         periodo,
         limite,
       });
-
-      if (!reserva.permitido) {
-        throw new LimitePlanError(
-          `Has alcanzado el límite de ${LIMITE_CONSULTAS_GRATUITO} tareas `
-          + 'del plan gratuito este mes. Actualiza a Premium para continuar.',
-        );
-      }
 
       return {
         padreId,

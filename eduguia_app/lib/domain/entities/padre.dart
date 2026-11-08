@@ -90,9 +90,7 @@ class Padre {
         'Ya existe un hijo registrado con el nombre "${hijo.nombre}".',
       );
     }
-    return copyWith(
-      hijos: List<Hijo>.unmodifiable(<Hijo>[...hijos, hijo]),
-    );
+    return copyWith(hijos: List<Hijo>.unmodifiable(<Hijo>[...hijos, hijo]));
   }
 
   Padre eliminarHijo(String nombreHijo) {
@@ -140,11 +138,7 @@ class Padre {
       nombre: json['nombre'] as String? ?? '',
       correo: json['correo'] as String? ?? '',
       hijos: hijosJson
-          .map(
-            (item) => Hijo.fromJson(
-              Map<String, dynamic>.from(item as Map),
-            ),
-          )
+          .map((item) => Hijo.fromJson(Map<String, dynamic>.from(item as Map)))
           .toList(growable: false),
       planActual: TipoPlan.fromValue(json['planActual'] as String?),
       fechaRegistro: DateTime.tryParse(json['fechaRegistro'] as String? ?? ''),

@@ -1,4 +1,4 @@
-﻿import 'package:flutter/foundation.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:purchases_flutter/purchases_flutter.dart';
 
@@ -51,8 +51,7 @@ class PagosService implements PagosRepository {
       );
     }
 
-    final configuracion = PurchasesConfiguration(apiKey)
-      ..appUserID = appUserId;
+    final configuracion = PurchasesConfiguration(apiKey)..appUserID = appUserId;
     await Purchases.configure(configuracion);
 
     _configurado = true;
@@ -84,8 +83,9 @@ class PagosService implements PagosRepository {
         PurchaseParams.package(paquete),
       );
 
-      final activo = resultado.customerInfo.entitlements.active
-          .containsKey(_entitlementId);
+      final activo = resultado.customerInfo.entitlements.active.containsKey(
+        _entitlementId,
+      );
 
       if (!activo) {
         throw const PagoException(
@@ -100,9 +100,7 @@ class PagosService implements PagosRepository {
       if (codigo == PurchasesErrorCode.purchaseCancelledError) {
         return null;
       }
-      throw PagoException(
-        _mensajeDeError(codigo, error.message),
-      );
+      throw PagoException(_mensajeDeError(codigo, error.message));
     }
   }
 
@@ -136,9 +134,7 @@ class PagosService implements PagosRepository {
       final datos = await _apiClient.postJson('/suscripcion/validar');
       final suscripcion = datos['suscripcion'];
       if (suscripcion is Map) {
-        return Suscripcion.fromJson(
-          Map<String, dynamic>.from(suscripcion),
-        );
+        return Suscripcion.fromJson(Map<String, dynamic>.from(suscripcion));
       }
       return null;
     } on ApiException catch (error) {

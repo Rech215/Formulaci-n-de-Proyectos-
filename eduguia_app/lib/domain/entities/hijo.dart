@@ -29,11 +29,7 @@ class Hijo {
       throw const DomainException('El grado escolar es obligatorio.');
     }
 
-    return Hijo._(
-      nombre: nombreLimpio,
-      edad: edad,
-      gradoEscolar: gradoLimpio,
-    );
+    return Hijo._(nombre: nombreLimpio, edad: edad, gradoEscolar: gradoLimpio);
   }
 
   final String nombre;

@@ -4,15 +4,12 @@ import 'package:provider/provider.dart';
 
 import '../../core/theme/app_colors.dart';
 import '../state/session_provider.dart';
-import '../widgets/brand_logo.dart';
 import 'app_drawer.dart';
+import 'brand_logo.dart';
+import 'plan_badge.dart';
 
 class AppShell extends StatelessWidget {
-  const AppShell({
-    super.key,
-    required this.child,
-    required this.location,
-  });
+  const AppShell({super.key, required this.child, required this.location});
 
   final Widget child;
   final String location;
@@ -25,16 +22,10 @@ class AppShell extends StatelessWidget {
       activeIcon: Icons.home,
     ),
     _DestinoNav(
-      path: '/problema',
-      label: 'Problema',
-      icon: Icons.report_problem_outlined,
-      activeIcon: Icons.report_problem,
-    ),
-    _DestinoNav(
-      path: '/como-funciona',
-      label: 'Cómo funciona',
-      icon: Icons.auto_awesome_outlined,
-      activeIcon: Icons.auto_awesome,
+      path: '/escanear',
+      label: 'Escanear',
+      icon: Icons.document_scanner_outlined,
+      activeIcon: Icons.document_scanner,
     ),
     _DestinoNav(
       path: '/historial',
@@ -43,18 +34,19 @@ class AppShell extends StatelessWidget {
       activeIcon: Icons.history_edu,
     ),
     _DestinoNav(
-      path: '/planes',
-      label: 'Planes',
+      path: '/premium',
+      label: 'Premium',
       icon: Icons.workspace_premium_outlined,
       activeIcon: Icons.workspace_premium,
     ),
   ];
 
   int get _indiceActual {
-    final indice = _destinos.indexWhere(
-      (destino) => location.startsWith(destino.path),
-    );
-    return indice < 0 ? 0 : indice;
+    if (location.startsWith('/resultado')) return 1;
+    if (location.startsWith('/premium')) return 3;
+    if (location.startsWith('/historial')) return 2;
+    if (location.startsWith('/escanear')) return 1;
+    return 0;
   }
 
   @override
@@ -65,30 +57,17 @@ class AppShell extends StatelessWidget {
         actions: <Widget>[
           Consumer<SessionProvider>(
             builder: (context, session, _) {
-              if (!session.haySesion ||
-                  MediaQuery.sizeOf(context).width < 360) {
-                return const SizedBox.shrink();
-              }
-              final premium = session.suscripcion?.esPremium ?? false;
+              if (!session.haySesion) return const SizedBox.shrink();
+              final premium = session.esPremium;
               return Padding(
-                padding: const EdgeInsets.only(right: 12),
-                child: Chip(
-                  avatar: Icon(
-                    premium ? Icons.workspace_premium : Icons.person_outline,
-                    size: 16,
-                    color: AppColors.brand700,
+                padding: const EdgeInsets.only(right: 8),
+                child: InkWell(
+                  borderRadius: BorderRadius.circular(999),
+                  onTap: premium ? null : () => context.go('/premium'),
+                  child: Padding(
+                    padding: const EdgeInsets.all(6),
+                    child: PlanBadge(premium: premium),
                   ),
-                  label: Text(
-                    premium ? 'Premium' : 'Gratuito',
-                    style: const TextStyle(
-                      fontSize: 11,
-                      fontWeight: FontWeight.w700,
-                      color: AppColors.brand700,
-                    ),
-                  ),
-                  backgroundColor: AppColors.brand50,
-                  side: const BorderSide(color: AppColors.brand100),
-                  visualDensity: VisualDensity.compact,
                 ),
               );
             },
@@ -97,15 +76,16 @@ class AppShell extends StatelessWidget {
       ),
       drawer: const AppDrawer(),
       body: child,
-      bottomNavigationBar: BottomNavigationBar(
-        type: BottomNavigationBarType.fixed,
-        currentIndex: _indiceActual,
-        onTap: (indice) => context.go(_destinos[indice].path),
-        items: <BottomNavigationBarItem>[
+      bottomNavigationBar: NavigationBar(
+        selectedIndex: _indiceActual,
+        onDestinationSelected: (indice) => context.go(_destinos[indice].path),
+        height: 68,
+        labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
+        destinations: <NavigationDestination>[
           for (final destino in _destinos)
-            BottomNavigationBarItem(
+            NavigationDestination(
               icon: Icon(destino.icon),
-              activeIcon: Icon(destino.activeIcon),
+              selectedIcon: Icon(destino.activeIcon, color: AppColors.brand700),
               label: destino.label,
             ),
         ],

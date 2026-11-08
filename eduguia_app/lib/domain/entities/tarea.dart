@@ -72,7 +72,8 @@ class ResultadoAnalisis {
       };
 
   factory ResultadoAnalisis.fromJson(Map<String, dynamic> json) {
-    final preguntas = json['preguntasGuia'] as List<dynamic>? ?? const <dynamic>[];
+    final preguntas =
+        json['preguntasGuia'] as List<dynamic>? ?? const <dynamic>[];
     return ResultadoAnalisis(
       materia: json['materia'] as String? ?? '',
       temaDetectado: json['temaDetectado'] as String? ?? '',
@@ -191,10 +192,7 @@ class Tarea {
         'No se puede marcar error en una tarea ya completada.',
       );
     }
-    return copyWith(
-      estado: EstadoTarea.error,
-      mensajeError: mensaje.trim(),
-    );
+    return copyWith(estado: EstadoTarea.error, mensajeError: mensaje.trim());
   }
 
   Tarea copyWith({
@@ -237,7 +235,8 @@ class Tarea {
       };
 
   factory Tarea.fromJson(Map<String, dynamic> json) {
-    final preguntas = json['preguntasGuia'] as List<dynamic>? ?? const <dynamic>[];
+    final preguntas =
+        json['preguntasGuia'] as List<dynamic>? ?? const <dynamic>[];
     return Tarea(
       id: json['id'] as String? ?? '',
       padreId: json['padreId'] as String? ?? '',

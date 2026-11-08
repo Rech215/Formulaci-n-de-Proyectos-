@@ -208,8 +208,8 @@ paths:
       summary: Analiza una tarea escolar con IA multimodal
       description: |
         La imagen se recibe en memoria. El servidor devuelve un método de
-        estudio y preguntas guía, nunca la respuesta final. Consume una
-        consulta del plan gratuito.
+        estudio y preguntas guía, nunca la respuesta final. Los escaneos son
+        ilimitados; el uso se registra solo como estadística.
       security:
         - bearerAuth: []
       requestBody:
@@ -644,8 +644,8 @@ components:
           minimum: 0
         limiteConsultas:
           type: integer
-          description: '-1 significa consultas ilimitadas.'
-          example: 5
+          description: 'Siempre -1: los escaneos son ilimitados.'
+          example: -1
         consultasRestantes:
           type: integer
           nullable: true

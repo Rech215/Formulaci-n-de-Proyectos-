@@ -8,11 +8,7 @@ import 'package:flutter_test/flutter_test.dart';
 void main() {
   group('Padre', () {
     test('normaliza el correo y rechaza correos inválidos', () {
-      final padre = Padre(
-        id: 'p1',
-        nombre: 'Ana',
-        correo: '  ANA@MAIL.COM ',
-      );
+      final padre = Padre(id: 'p1', nombre: 'Ana', correo: '  ANA@MAIL.COM ');
 
       expect(padre.correo, 'ana@mail.com');
       expect(
@@ -85,24 +81,22 @@ void main() {
   });
 
   group('Suscripcion', () {
-    test('limita el plan gratuito a 5 consultas', () {
+    test('el plan gratuito es ilimitado y cuenta los escaneos', () {
       var suscripcion = Suscripcion(id: 's1', padreId: 'p1');
 
-      expect(suscripcion.consultasRestantes, 5);
+      expect(suscripcion.limiteConsultas, isNull);
+      expect(suscripcion.consultasRestantes, isNull);
 
-      for (var i = 0; i < 5; i++) {
+      for (var i = 0; i < 10; i++) {
         suscripcion = suscripcion.registrarConsulta();
       }
 
-      expect(suscripcion.consultasUsadas, 5);
-      expect(suscripcion.puedeConsultar(), isFalse);
-      expect(
-        () => suscripcion.registrarConsulta(),
-        throwsA(isA<DomainException>()),
-      );
+      expect(suscripcion.consultasUsadas, 10);
+      expect(suscripcion.puedeConsultar(), isTrue);
+      expect(suscripcion.esIlimitada, isTrue);
     });
 
-    test('premium es ilimitado y no permite cambiar al mismo plan', () {
+    test('premium cuesta 69 y no permite cambiar al mismo plan', () {
       final premium = Suscripcion(
         id: 's1',
         padreId: 'p1',
@@ -111,6 +105,7 @@ void main() {
 
       expect(premium.esIlimitada, isTrue);
       expect(premium.consultasRestantes, isNull);
+      expect(premium.precioMensual, 69);
 
       var actual = premium;
       for (var i = 0; i < 20; i++) {
@@ -124,7 +119,7 @@ void main() {
       );
 
       final gratuito = actual.actualizarPlan(TipoPlan.gratuito);
-      expect(gratuito.limiteConsultas, 5);
+      expect(gratuito.limiteConsultas, isNull);
       expect(gratuito.esPremium, isFalse);
     });
   });

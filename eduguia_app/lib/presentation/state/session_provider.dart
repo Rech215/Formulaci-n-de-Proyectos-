@@ -16,16 +16,6 @@ class SessionProvider extends ChangeNotifier {
   })  : _useCases = useCases,
         _pagosRepository = pagosRepository;
 
-  static const bool _demoAutoLoginConfigurado = bool.fromEnvironment(
-    'EDUGUIA_DEMO_AUTO_LOGIN',
-    defaultValue: true,
-  );
-
-  static const String _demoCorreo = 'demo@eduguia.mx';
-  static const String _demoPassword = 'demo12345';
-
-  bool get _demoAutoLogin => _demoAutoLoginConfigurado;
-
   final EduGuiaUseCases _useCases;
   final PagosRepository? _pagosRepository;
 
@@ -47,6 +37,7 @@ class SessionProvider extends ChangeNotifier {
   String? get error => _error;
   DomainException? get errorExcepcion => _errorExcepcion;
   bool get haySesion => _padre != null;
+  bool get esPremium => _suscripcion?.esPremium ?? false;
   bool get puedeConsultar => _suscripcion?.puedeConsultar() ?? false;
 
   Future<void> initialize() async {
@@ -62,8 +53,6 @@ class SessionProvider extends ChangeNotifier {
 
       if (restaurado != null) {
         _padre = restaurado;
-      } else if (_demoAutoLogin) {
-        _padre = await _iniciarSesionDemo();
       }
 
       if (_padre != null) {
@@ -80,24 +69,6 @@ class SessionProvider extends ChangeNotifier {
     } finally {
       _cargando = false;
       notifyListeners();
-    }
-  }
-
-  Future<Padre> _iniciarSesionDemo() async {
-    try {
-      return await _useCases.iniciarSesion(
-        correo: _demoCorreo,
-        password: _demoPassword,
-      );
-    } on DomainException {
-      return _useCases.registrarPadre(
-        nombre: 'Familia Demo',
-        correo: _demoCorreo,
-        password: _demoPassword,
-        hijos: <Hijo>[
-          Hijo(nombre: 'Mateo', edad: 9, gradoEscolar: '4to Primaria'),
-        ],
-      );
     }
   }
 
@@ -123,6 +94,11 @@ class SessionProvider extends ChangeNotifier {
     List<Hijo> hijos = const <Hijo>[],
   }) async {
     await _ejecutar(() async {
+      if (hijos.isEmpty) {
+        throw const DomainException(
+          'Agrega al menos un hijo para crear la cuenta.',
+        );
+      }
       final padre = await _useCases.registrarPadre(
         nombre: nombre,
         correo: correo,
@@ -154,11 +130,7 @@ class SessionProvider extends ChangeNotifier {
     if (padre == null) return;
 
     await _ejecutar(() async {
-      final hijo = Hijo(
-        nombre: nombre,
-        edad: edad,
-        gradoEscolar: gradoEscolar,
-      );
+      final hijo = Hijo(nombre: nombre, edad: edad, gradoEscolar: gradoEscolar);
       await _useCases.agregarHijo(padre.id, hijo);
       await _refrescar(padre.id, notificar: false);
     });

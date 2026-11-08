@@ -18,11 +18,7 @@ class TimeoutException extends DomainException {
 
 /// El servidor Node.js respondió con un error o con datos inválidos.
 class ServerException extends DomainException {
-  const ServerException(
-    super.message, {
-    this.code,
-    this.statusCode,
-  });
+  const ServerException(super.message, {this.code, this.statusCode});
 
   final String? code;
   final int? statusCode;

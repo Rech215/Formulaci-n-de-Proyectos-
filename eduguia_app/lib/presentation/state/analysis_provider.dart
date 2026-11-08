@@ -4,12 +4,7 @@ import '../../core/errors/domain_exception.dart';
 import '../../domain/entities/tarea.dart';
 import '../../domain/usecases/edu_guia_use_cases.dart';
 
-enum EstadoAnalisis {
-  inactivo,
-  analizando,
-  completado,
-  error,
-}
+enum EstadoAnalisis { inactivo, analizando, completado, error }
 
 class AnalysisProvider extends ChangeNotifier {
   AnalysisProvider({
@@ -75,6 +70,17 @@ class AnalysisProvider extends ChangeNotifier {
       _estado = EstadoAnalisis.error;
       notifyListeners();
     }
+  }
+
+  void mostrarTarea(Tarea tarea) {
+    _tareaActual = tarea;
+    _imagenPath = tarea.imagenUrl;
+    _error = null;
+    _errorExcepcion = null;
+    _estado = tarea.estado == EstadoTarea.completada
+        ? EstadoAnalisis.completado
+        : EstadoAnalisis.inactivo;
+    notifyListeners();
   }
 
   void reiniciar() {

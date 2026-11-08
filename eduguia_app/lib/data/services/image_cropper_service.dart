@@ -10,10 +10,10 @@ class ImageCropperService implements ImageEditorService {
   Future<String?> recortar({required String sourcePath}) async {
     final resultado = await ImageCropper().cropImage(
       sourcePath: sourcePath,
-      maxWidth: 2048,
-      maxHeight: 2048,
+      maxWidth: 1200,
+      maxHeight: 1200,
       compressFormat: ImageCompressFormat.jpg,
-      compressQuality: 88,
+      compressQuality: 75,
       uiSettings: <PlatformUiSettings>[
         AndroidUiSettings(
           toolbarTitle: 'Recorta la tarea',

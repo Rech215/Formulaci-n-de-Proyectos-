@@ -40,10 +40,7 @@ class ApiEduGuiaRepository implements BaseEduGuiaRepository {
   }) async {
     final datos = await _api.postJson(
       '/auth/login',
-      body: <String, dynamic>{
-        'correo': correo,
-        'password': password,
-      },
+      body: <String, dynamic>{'correo': correo, 'password': password},
     );
 
     await _guardarToken(datos);
@@ -77,10 +74,7 @@ class ApiEduGuiaRepository implements BaseEduGuiaRepository {
 
   @override
   Future<Padre> agregarHijo(String padreId, Hijo hijo) async {
-    final datos = await _api.postJson(
-      '/hijos',
-      body: hijo.toJson(),
-    );
+    final datos = await _api.postJson('/hijos', body: hijo.toJson());
     return _padreDesde(datos['padre']);
   }
 
@@ -158,16 +152,12 @@ class ApiEduGuiaRepository implements BaseEduGuiaRepository {
       );
     }
 
-    return tareas
-        .map((item) => _tareaDesde(item))
-        .toList(growable: false);
+    return tareas.map((item) => _tareaDesde(item)).toList(growable: false);
   }
 
   @override
   Future<Tarea> obtenerTarea(String tareaId) async {
-    final datos = await _api.getJson(
-      '/tareas/${Uri.encodeComponent(tareaId)}',
-    );
+    final datos = await _api.getJson('/tareas/${Uri.encodeComponent(tareaId)}');
     return _tareaDesde(datos['tarea']);
   }
 

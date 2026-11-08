@@ -97,10 +97,7 @@ ThemeData buildAppTheme() {
   const dialogRadius = 24.0;
   const chipRadius = 999.0;
 
-  const buttonPadding = EdgeInsets.symmetric(
-    horizontal: 20,
-    vertical: 14,
-  );
+  const buttonPadding = EdgeInsets.symmetric(horizontal: 20, vertical: 14);
 
   return base.copyWith(
     // ── Colores globales ────────────────────────────────────────────────

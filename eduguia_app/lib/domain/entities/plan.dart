@@ -81,15 +81,15 @@ class Plan {
   static Plan gratuito() {
     return Plan(
       id: 'gratuito',
-      nombre: 'Prueba Gratuita',
-      descripcion: 'Para conocer cómo la IA puede ayudarte.',
+      nombre: 'Gratis',
+      descripcion: 'Escanea tus tareas sin costo, con anuncios.',
       precioMensual: 0,
-      limiteConsultas: 5,
+      limiteConsultas: null,
       beneficios: const <String>[
-        'Lectura de fotos de tareas',
+        'Escaneos ilimitados',
         'Explicación del método escolar (SEP)',
-        '5 consultas al mes',
         'Preguntas guía básicas',
+        'Con anuncios entre escaneos',
       ],
     );
   }
@@ -97,12 +97,13 @@ class Plan {
   static Plan premium() {
     return Plan(
       id: 'premium',
-      nombre: 'Suscripción Premium',
-      descripcion: 'Acompañamiento sin límites para tu hijo.',
-      precioMensual: 99,
+      nombre: 'Premium',
+      descripcion: 'Acompañamiento sin anuncios para tu hijo.',
+      precioMensual: 69,
       limiteConsultas: null,
       beneficios: const <String>[
-        'Consultas ilimitadas',
+        'Escaneos ilimitados',
+        'Sin anuncios',
         'Preguntas guía adaptadas a su edad',
         'Alineación curricular SEP',
         'Resumen semanal de logros y áreas de mejora',

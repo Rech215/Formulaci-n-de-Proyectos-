@@ -36,10 +36,7 @@ abstract final class ErrorFeedback {
     );
   }
 
-  static Future<void> showAlert(
-    BuildContext context,
-    DomainException? error,
-  ) {
+  static Future<void> showAlert(BuildContext context, DomainException? error) {
     if (error == null) return Future<void>.value();
 
     return showDialog<void>(

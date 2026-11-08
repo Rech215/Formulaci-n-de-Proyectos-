@@ -8,15 +8,14 @@ import 'data/repositories/mock_edu_guia_repository.dart';
 import 'data/repositories/mock_pagos_repository.dart';
 import 'data/services/historial_service.dart';
 import 'data/services/image_cropper_service.dart';
-import 'data/services/local_usage_service.dart';
 import 'data/services/pagos_service.dart';
 import 'domain/repositories/edu_guia_repository.dart';
 import 'domain/repositories/historial_repository.dart';
-import 'domain/repositories/local_usage_repository.dart';
 import 'domain/repositories/pagos_repository.dart';
 import 'domain/services/image_editor_service.dart';
 import 'domain/usecases/edu_guia_use_cases.dart';
 import 'presentation/state/analysis_provider.dart';
+import 'presentation/state/onboarding_provider.dart';
 import 'presentation/state/session_provider.dart';
 
 final GetIt getIt = GetIt.instance;
@@ -30,9 +29,9 @@ Future<void> configureDependencies({bool? useMocks}) async {
 
   final usarMocks = useMocks ?? ApiConfig.useMocks;
 
-  getIt.registerLazySingleton<LocalUsageRepository>(() => LocalUsageService());
   getIt.registerLazySingleton<HistorialRepository>(() => HistorialService());
   getIt.registerLazySingleton<ImageEditorService>(() => ImageCropperService());
+  getIt.registerLazySingleton<OnboardingProvider>(() => OnboardingProvider());
 
   getIt.registerLazySingleton<TokenStorage>(() => SecureTokenStorage());
 
@@ -77,7 +76,8 @@ Future<void> configureDependencies({bool? useMocks}) async {
 PagosRepository _crearPagosRepository(bool usarMocks) {
   if (usarMocks) {
     return MockPagosRepository(
-        eduGuiaRepository: getIt<BaseEduGuiaRepository>());
+      eduGuiaRepository: getIt<BaseEduGuiaRepository>(),
+    );
   }
 
   const googleApiKey = String.fromEnvironment('REVENUECAT_GOOGLE_API_KEY');
@@ -89,7 +89,8 @@ PagosRepository _crearPagosRepository(bool usarMocks) {
 
   if (googleApiKey.isEmpty && appleApiKey.isEmpty) {
     return MockPagosRepository(
-        eduGuiaRepository: getIt<BaseEduGuiaRepository>());
+      eduGuiaRepository: getIt<BaseEduGuiaRepository>(),
+    );
   }
 
   return PagosService(

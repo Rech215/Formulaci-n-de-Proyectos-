@@ -30,10 +30,7 @@ class IniciarSesion {
 
   final BaseEduGuiaRepository _repository;
 
-  Future<Padre> call({
-    required String correo,
-    required String password,
-  }) {
+  Future<Padre> call({required String correo, required String password}) {
     return _repository.iniciarSesion(correo: correo, password: password);
   }
 }

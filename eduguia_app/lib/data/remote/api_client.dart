@@ -121,8 +121,7 @@ class ApiClient {
       },
       timeoutMessage:
           'El análisis tardó demasiado. Intenta con una foto más ligera.',
-      networkMessage:
-          'No pudimos enviar la foto al servidor de EduGuía. '
+      networkMessage: 'No pudimos enviar la foto al servidor de EduGuía. '
           'Revisa tu internet e intenta de nuevo.',
     );
   }

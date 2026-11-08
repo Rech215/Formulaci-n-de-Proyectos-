@@ -33,10 +33,7 @@ class MockPagosRepository implements PagosRepository {
     if (suscripcion == null) return null;
     if (suscripcion.esPremium) return suscripcion;
 
-    return _eduGuiaRepository.actualizarPlan(
-      _appUserId!,
-      TipoPlan.premium,
-    );
+    return _eduGuiaRepository.actualizarPlan(_appUserId!, TipoPlan.premium);
   }
 
   @override

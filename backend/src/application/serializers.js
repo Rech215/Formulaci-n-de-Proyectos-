@@ -42,7 +42,6 @@ export function serializarHijo(hijo) {
 export function serializarSuscripcion(suscripcion, uso, padreId) {
   const plan = suscripcion?.plan ?? 'GRATUITO';
   const esPremium = plan === 'PREMIUM';
-  const limite = esPremium ? null : 5;
   const consultasUsadas = uso?.contador ?? 0;
 
   return {
@@ -51,10 +50,8 @@ export function serializarSuscripcion(suscripcion, uso, padreId) {
     tipoPlan: plan,
     estado: suscripcion?.estado ?? 'ACTIVA',
     consultasUsadas,
-    limiteConsultas: limite ?? -1,
-    consultasRestantes: limite === null
-      ? null
-      : Math.max(0, limite - consultasUsadas),
+    limiteConsultas: -1,
+    consultasRestantes: null,
     esPremium,
     fechaInicio: isoOFechaNula(suscripcion?.fechaInicio ?? new Date()),
     fechaRenovacion: isoOFechaNula(suscripcion?.fechaRenovacion),

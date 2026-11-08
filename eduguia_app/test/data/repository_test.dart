@@ -12,30 +12,32 @@ void main() {
     repository = InMemoryEduGuiaRepository();
   });
 
-  test('registra padre con suscripción gratuita y evita correos duplicados',
-      () async {
+  test(
+    'registra padre con suscripción gratuita y evita correos duplicados',
+    () async {
+      final padre = await repository.registrarPadre(
+        nombre: 'Ana',
+        correo: 'ana@mail.com',
+      );
+
+      final suscripcion = await repository.obtenerSuscripcion(padre.id);
+      expect(suscripcion.tipoPlan, TipoPlan.gratuito);
+      expect(suscripcion.limiteConsultas, isNull);
+
+      await expectLater(
+        repository.registrarPadre(nombre: 'Otra', correo: 'ANA@mail.com'),
+        throwsA(isA<DomainException>()),
+      );
+    },
+  );
+
+  test('permite escaneos ilimitados y cuenta el uso', () async {
     final padre = await repository.registrarPadre(
       nombre: 'Ana',
       correo: 'ana@mail.com',
     );
 
-    final suscripcion = await repository.obtenerSuscripcion(padre.id);
-    expect(suscripcion.tipoPlan, TipoPlan.gratuito);
-    expect(suscripcion.limiteConsultas, 5);
-
-    await expectLater(
-      repository.registrarPadre(nombre: 'Otra', correo: 'ANA@mail.com'),
-      throwsA(isA<DomainException>()),
-    );
-  });
-
-  test('consume consultas y bloquea al alcanzar el límite', () async {
-    final padre = await repository.registrarPadre(
-      nombre: 'Ana',
-      correo: 'ana@mail.com',
-    );
-
-    for (var i = 0; i < 5; i++) {
+    for (var i = 0; i < 8; i++) {
       await repository.crearTarea(
         padreId: padre.id,
         imagenUrl: 'https://img/$i.jpg',
@@ -44,16 +46,9 @@ void main() {
     }
 
     final suscripcion = await repository.obtenerSuscripcion(padre.id);
-    expect(suscripcion.consultasUsadas, 5);
-
-    await expectLater(
-      repository.crearTarea(
-        padreId: padre.id,
-        imagenUrl: 'https://img/6.jpg',
-        nombreHijo: 'Mateo',
-      ),
-      throwsA(isA<DomainException>()),
-    );
+    expect(suscripcion.consultasUsadas, 8);
+    expect(suscripcion.consultasRestantes, isNull);
+    expect(suscripcion.puedeConsultar(), isTrue);
   });
 
   test('flujo de análisis y resumen de uso', () async {
@@ -96,10 +91,7 @@ void main() {
       correo: 'ana@mail.com',
     );
 
-    final premium = await repository.actualizarPlan(
-      padre.id,
-      TipoPlan.premium,
-    );
+    final premium = await repository.actualizarPlan(padre.id, TipoPlan.premium);
     expect(premium.esPremium, isTrue);
     expect(premium.consultasRestantes, isNull);
 

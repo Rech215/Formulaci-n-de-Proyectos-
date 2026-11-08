@@ -26,8 +26,7 @@ class ResumenUso {
       consultasUsadas: (json['consultasUsadas'] as num?)?.toInt() ?? 0,
       consultasRestantes: (json['consultasRestantes'] as num?)?.toInt(),
       totalTareas: (json['totalTareas'] as num?)?.toInt() ?? 0,
-      tareasCompletadas:
-          (json['tareasCompletadas'] as num?)?.toInt() ?? 0,
+      tareasCompletadas: (json['tareasCompletadas'] as num?)?.toInt() ?? 0,
       cantidadHijos: (json['cantidadHijos'] as num?)?.toInt() ?? 0,
     );
   }

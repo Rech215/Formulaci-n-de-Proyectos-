@@ -61,7 +61,9 @@ class Suscripcion {
     final padreIdLimpio = padreId.trim();
 
     if (idLimpio.isEmpty) {
-      throw const DomainException('La suscripción debe tener un identificador.');
+      throw const DomainException(
+        'La suscripción debe tener un identificador.',
+      );
     }
     if (padreIdLimpio.isEmpty) {
       throw const DomainException('La suscripción debe pertenecer a un padre.');
@@ -69,13 +71,6 @@ class Suscripcion {
     if (consultasUsadas < 0) {
       throw const DomainException(
         'Las consultas usadas no pueden ser negativas.',
-      );
-    }
-
-    final limite = limiteConsultas ?? _limitePara(tipoPlan);
-    if (limite != null && limite <= 0) {
-      throw const DomainException(
-        'El límite de consultas debe ser positivo o ilimitado.',
       );
     }
 
@@ -87,15 +82,13 @@ class Suscripcion {
       tipoPlan: tipoPlan,
       estado: estado,
       consultasUsadas: consultasUsadas,
-      limiteConsultas: limite,
+      limiteConsultas: null,
       fechaInicio: inicio,
-      fechaRenovacion:
-          fechaRenovacion ?? _calcularRenovacion(tipoPlan, inicio),
+      fechaRenovacion: fechaRenovacion ?? _calcularRenovacion(tipoPlan, inicio),
     );
   }
 
-  static const int limiteGratuito = 5;
-  static const int precioPremiumMxn = 99;
+  static const int precioPremiumMxn = 69;
   static const Object _sinCambio = Object();
 
   final String id;
@@ -126,14 +119,8 @@ class Suscripcion {
   }
 
   Suscripcion registrarConsulta() {
-    if (!puedeConsultar()) {
-      if (estado != EstadoSuscripcion.activa) {
-        throw const DomainException('La suscripción no está activa.');
-      }
-      throw DomainException(
-        'Has alcanzado el límite de $limiteConsultas consultas mensuales. '
-        'Actualiza a Premium para consultas ilimitadas.',
-      );
+    if (estado != EstadoSuscripcion.activa) {
+      throw const DomainException('La suscripción no está activa.');
     }
     return copyWith(consultasUsadas: consultasUsadas + 1);
   }
@@ -144,7 +131,7 @@ class Suscripcion {
     }
     return copyWith(
       tipoPlan: nuevoPlan,
-      limiteConsultas: _limitePara(nuevoPlan),
+      limiteConsultas: null,
       estado: EstadoSuscripcion.activa,
       fechaRenovacion: _calcularRenovacion(nuevoPlan, DateTime.now()),
     );
@@ -219,17 +206,12 @@ class Suscripcion {
       tipoPlan: TipoPlan.fromValue(json['tipoPlan'] as String?),
       estado: EstadoSuscripcion.fromValue(json['estado'] as String?),
       consultasUsadas: (json['consultasUsadas'] as num?)?.toInt() ?? 0,
-      limiteConsultas:
-          limiteRaw == null || limiteRaw == -1 ? null : limiteRaw,
+      limiteConsultas: limiteRaw == null || limiteRaw == -1 ? null : limiteRaw,
       fechaInicio: DateTime.tryParse(json['fechaInicio'] as String? ?? ''),
       fechaRenovacion: fechaRenovacionRaw == null
           ? null
           : DateTime.tryParse(fechaRenovacionRaw),
     );
-  }
-
-  static int? _limitePara(TipoPlan plan) {
-    return plan == TipoPlan.premium ? null : limiteGratuito;
   }
 
   static DateTime? _calcularRenovacion(TipoPlan plan, DateTime desde) {
