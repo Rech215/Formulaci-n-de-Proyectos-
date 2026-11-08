@@ -18,6 +18,7 @@ void main() {
       final padre = await repository.registrarPadre(
         nombre: 'Ana',
         correo: 'ana@mail.com',
+        password: 'secreto123',
       );
 
       final suscripcion = await repository.obtenerSuscripcion(padre.id);
@@ -25,7 +26,8 @@ void main() {
       expect(suscripcion.limiteConsultas, isNull);
 
       await expectLater(
-        repository.registrarPadre(nombre: 'Otra', correo: 'ANA@mail.com'),
+        repository.registrarPadre(
+            nombre: 'Otra', correo: 'ANA@mail.com', password: 'secreto123'),
         throwsA(isA<DomainException>()),
       );
     },
@@ -35,6 +37,7 @@ void main() {
     final padre = await repository.registrarPadre(
       nombre: 'Ana',
       correo: 'ana@mail.com',
+      password: 'secreto123',
     );
 
     for (var i = 0; i < 8; i++) {
@@ -55,6 +58,7 @@ void main() {
     final padre = await repository.registrarPadre(
       nombre: 'Ana',
       correo: 'ana@mail.com',
+      password: 'secreto123',
       hijos: <Hijo>[
         Hijo(nombre: 'Mateo', edad: 9, gradoEscolar: '4to Primaria'),
       ],
@@ -89,6 +93,7 @@ void main() {
     final padre = await repository.registrarPadre(
       nombre: 'Ana',
       correo: 'ana@mail.com',
+      password: 'secreto123',
     );
 
     final premium = await repository.actualizarPlan(padre.id, TipoPlan.premium);

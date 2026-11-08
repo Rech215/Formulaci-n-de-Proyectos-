@@ -29,7 +29,7 @@ class PrivacyView extends StatelessWidget {
                   _AvisoPlaceholder(),
                   SizedBox(height: 18),
                   Text(
-                    'Aviso de privacidad de EduGuÃ­a',
+                    'Aviso de privacidad de EduGuía',
                     style: TextStyle(
                       fontSize: 24,
                       fontWeight: FontWeight.w800,
@@ -38,51 +38,51 @@ class PrivacyView extends StatelessWidget {
                   ),
                   SizedBox(height: 6),
                   Text(
-                    'Ãšltima actualizaciÃ³n: pendiente de revisiÃ³n legal.',
+                    'Última actualización: pendiente de revisión legal.',
                     style: TextStyle(color: AppColors.slate500, fontSize: 12),
                   ),
                   SizedBox(height: 20),
                   _Seccion(
                     titulo: '1. Responsable',
                     texto:
-                        'EduGuÃ­a es responsable del tratamiento de los datos '
+                        'EduGuía es responsable del tratamiento de los datos '
                         'personales que proporcionas al crear una cuenta y al '
-                        'usar la aplicaciÃ³n.',
+                        'usar la aplicación.',
                   ),
                   _Seccion(
                     titulo: '2. Datos que recabamos',
-                    texto: 'Nombre del padre o tutor, correo electrÃ³nico, '
-                        'contraseÃ±a cifrada, nombre y edad de los hijos, grado '
-                        'escolar e imÃ¡genes de las tareas que decides escanear.',
+                    texto: 'Nombre del padre o tutor, correo electrónico, '
+                        'contraseña cifrada, nombre y edad de los hijos, grado '
+                        'escolar e imágenes de las tareas que decides escanear.',
                   ),
                   _Seccion(
                     titulo: '3. Finalidades',
                     texto:
                         'Usamos los datos para crear tu cuenta, analizar las '
-                        'tareas, generar explicaciones y preguntas guÃ­a, '
-                        'guardar tu historial local y gestionar la suscripciÃ³n '
+                        'tareas, generar explicaciones y preguntas guía, '
+                        'guardar tu historial local y gestionar la suscripción '
                         'Premium. No vendemos tus datos.',
                   ),
                   _Seccion(
-                    titulo: '4. ImÃ¡genes de tareas',
+                    titulo: '4. Imágenes de tareas',
                     texto:
-                        'Las fotografÃ­as se envÃ­an al servicio de anÃ¡lisis para '
-                        'generar el resultado. El historial guarda Ãºnicamente el '
-                        'texto pedagÃ³gico y se almacena en este dispositivo.',
+                        'Las fotografías se envían al servicio de análisis para '
+                        'generar el resultado. El historial guarda únicamente el '
+                        'texto pedagógico y se almacena en este dispositivo.',
                   ),
                   _Seccion(
                     titulo: '5. Proveedores',
                     texto:
                         'Podemos usar servicios de inteligencia artificial para '
-                        'el anÃ¡lisis y plataformas de compras integradas para '
+                        'el análisis y plataformas de compras integradas para '
                         'gestionar Premium. Estos proveedores tratan los datos '
-                        'conforme a sus propias polÃ­ticas.',
+                        'conforme a sus propias políticas.',
                   ),
                   _Seccion(
                     titulo: '6. Derechos ARCO',
                     texto:
-                        'Puedes solicitar acceso, rectificaciÃ³n, cancelaciÃ³n u '
-                        'oposiciÃ³n al tratamiento de tus datos escribiendo a '
+                        'Puedes solicitar acceso, rectificación, cancelación u '
+                        'oposición al tratamiento de tus datos escribiendo a '
                         'hola@eduguia.mx.',
                   ),
                   _Seccion(
@@ -119,7 +119,7 @@ class _AvisoPlaceholder extends StatelessWidget {
           SizedBox(width: 10),
           Expanded(
             child: Text(
-              'Texto de ejemplo pendiente de revisiÃ³n legal. Debe validarse '
+              'Texto de ejemplo pendiente de revisión legal. Debe validarse '
               'con un abogado antes de publicarse.',
               style: TextStyle(
                 color: AppColors.slate700,
@@ -143,14 +143,14 @@ class _Seccion extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 18),
+      padding: const EdgeInsets.only(bottom: 16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
           Text(
             titulo,
             style: const TextStyle(
-              fontSize: 15,
+              fontSize: 16,
               fontWeight: FontWeight.w800,
               color: AppColors.slate900,
             ),
@@ -161,7 +161,7 @@ class _Seccion extends StatelessWidget {
             style: const TextStyle(
               color: AppColors.slate600,
               fontSize: 14,
-              height: 1.6,
+              height: 1.55,
             ),
           ),
         ],

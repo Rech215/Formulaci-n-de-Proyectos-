@@ -138,21 +138,11 @@ class AppDrawer extends StatelessWidget {
                     label: 'Términos de servicio',
                     path: '/legal/terminos',
                   ),
-                  ListTile(
-                    leading: const Icon(
-                      Icons.mail_outline,
-                      color: AppColors.slate600,
-                    ),
-                    title: const Text('Contacto'),
-                    onTap: () {
-                      final messenger = ScaffoldMessenger.of(context);
-                      Navigator.of(context).pop();
-                      messenger.showSnackBar(
-                        const SnackBar(
-                          content: Text('Escríbenos a hola@eduguia.mx'),
-                        ),
-                      );
-                    },
+                  _drawerItem(
+                    context,
+                    icon: Icons.mail_outline,
+                    label: 'Contacto',
+                    path: '/legal/contacto',
                   ),
                   const Divider(height: 24),
                   ListTile(

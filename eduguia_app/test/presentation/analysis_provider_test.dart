@@ -25,6 +25,7 @@ void main() {
       final padre = await useCases.registrarPadre(
         nombre: 'Carlos',
         correo: 'carlos@mail.com',
+        password: 'secreto123',
         hijos: <Hijo>[
           Hijo(nombre: 'Sofía', edad: 8, gradoEscolar: '3ro Primaria'),
         ],
@@ -48,6 +49,7 @@ void main() {
     final padre = await useCases.registrarPadre(
       nombre: 'Carlos',
       correo: 'carlos2@mail.com',
+      password: 'secreto123',
     );
 
     await analysisProvider.analizarTarea(

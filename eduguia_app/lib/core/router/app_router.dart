@@ -7,6 +7,7 @@ import '../../presentation/views/auth/login_view.dart';
 import '../../presentation/views/auth/register_view.dart';
 import '../../presentation/views/history_view.dart';
 import '../../presentation/views/home_view.dart';
+import '../../presentation/views/legal/contact_view.dart';
 import '../../presentation/views/legal/privacy_view.dart';
 import '../../presentation/views/legal/terms_view.dart';
 import '../../presentation/views/not_found_view.dart';
@@ -72,6 +73,12 @@ abstract class AppRouter {
           name: 'terminos',
           pageBuilder: (context, state) =>
               _page(state, const TermsView(), fullscreen: true),
+        ),
+        GoRoute(
+          path: '/legal/contacto',
+          name: 'contacto',
+          pageBuilder: (context, state) =>
+              _page(state, const ContactView(), fullscreen: true),
         ),
         ShellRoute(
           builder: (context, state, child) {

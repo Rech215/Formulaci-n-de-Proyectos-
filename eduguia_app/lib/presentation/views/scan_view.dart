@@ -27,6 +27,7 @@ class _ScanViewState extends State<ScanView> {
   XFile? _imagen;
   String? _errorPicker;
   String _hijoSeleccionado = '';
+  bool _isLoading = false;
 
   @override
   void initState() {
@@ -81,46 +82,56 @@ class _ScanViewState extends State<ScanView> {
   }
 
   Future<void> _analizar() async {
+    if (_isLoading) return;
+
     final session = context.read<SessionProvider>();
     final analysis = context.read<AnalysisProvider>();
     final padre = session.padre;
     if (padre == null || _imagen == null) return;
 
-    await analysis.analizarTarea(
-      padreId: padre.id,
-      imagenPath: _imagen!.path,
-      nombreHijo: _hijoSeleccionado,
-    );
+    setState(() => _isLoading = true);
 
-    if (!mounted) return;
+    try {
+      await analysis.analizarTarea(
+        padreId: padre.id,
+        imagenPath: _imagen!.path,
+        nombreHijo: _hijoSeleccionado,
+      );
 
-    if (analysis.estado == EstadoAnalisis.error) {
-      ErrorFeedback.show(context, analysis.errorExcepcion);
-      return;
-    }
-
-    final tarea = analysis.tareaActual;
-    if (tarea == null) return;
-
-    await getIt<HistorialRepository>().guardar(padre.id, tarea);
-    await session.recargar();
-
-    if (!mounted) return;
-
-    if (session.errorExcepcion != null) {
-      ErrorFeedback.show(context, session.errorExcepcion);
-    }
-
-    if (!session.esPremium) {
-      final quierePremium = await showAdInterstitial(context);
       if (!mounted) return;
-      if (quierePremium) {
-        context.go('/premium');
+
+      if (analysis.estado == EstadoAnalisis.error) {
+        ErrorFeedback.show(context, analysis.errorExcepcion);
         return;
       }
-    }
 
-    if (mounted) context.go('/resultado');
+      final tarea = analysis.tareaActual;
+      if (tarea == null) return;
+
+      await getIt<HistorialRepository>().guardar(padre.id, tarea);
+      await session.recargar();
+
+      if (!mounted) return;
+
+      if (session.errorExcepcion != null) {
+        ErrorFeedback.show(context, session.errorExcepcion);
+      }
+
+      if (!session.esPremium) {
+        final quierePremium = await showAdInterstitial(context);
+        if (!mounted) return;
+        if (quierePremium) {
+          context.go('/premium');
+          return;
+        }
+      }
+
+      context.go('/resultado');
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
+    }
   }
 
   void _reiniciar() {
@@ -415,7 +426,8 @@ class _ScanViewState extends State<ScanView> {
           children: <Widget>[
             Expanded(
               child: OutlinedButton.icon(
-                onPressed: () => setState(() => _imagen = null),
+                onPressed:
+                    _isLoading ? null : () => setState(() => _imagen = null),
                 icon: const Icon(Icons.refresh, size: 18),
                 label: const Text('Cambiar'),
               ),
@@ -424,9 +436,15 @@ class _ScanViewState extends State<ScanView> {
             Expanded(
               flex: 2,
               child: FilledButton.icon(
-                onPressed: _analizar,
-                icon: const Icon(Icons.auto_awesome, size: 20),
-                label: const Text('Analizar tarea'),
+                onPressed: _isLoading ? null : _analizar,
+                icon: _isLoading
+                    ? const SizedBox(
+                        width: 18,
+                        height: 18,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : const Icon(Icons.auto_awesome, size: 20),
+                label: Text(_isLoading ? 'Analizando...' : 'Analizar tarea'),
               ),
             ),
           ],

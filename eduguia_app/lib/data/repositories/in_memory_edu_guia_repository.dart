@@ -23,7 +23,7 @@ class InMemoryEduGuiaRepository implements BaseEduGuiaRepository {
   Future<Padre> registrarPadre({
     required String nombre,
     required String correo,
-    String password = 'demo12345',
+    required String password,
     List<Hijo> hijos = const <Hijo>[],
   }) async {
     final correoNormalizado = correo.trim().toLowerCase();

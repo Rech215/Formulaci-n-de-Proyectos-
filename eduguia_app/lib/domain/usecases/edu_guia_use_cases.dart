@@ -13,7 +13,7 @@ class RegistrarPadre {
   Future<Padre> call({
     required String nombre,
     required String correo,
-    String password = 'demo12345',
+    required String password,
     List<Hijo> hijos = const <Hijo>[],
   }) {
     return _repository.registrarPadre(
