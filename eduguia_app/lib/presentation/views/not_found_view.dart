@@ -33,7 +33,7 @@ class NotFoundView extends StatelessWidget {
               ),
               const SizedBox(height: 20),
               FilledButton(
-                onPressed: () => context.go('/inicio'),
+                onPressed: () => context.go('/home'),
                 style: FilledButton.styleFrom(
                   backgroundColor: AppColors.brand600,
                   foregroundColor: Colors.white,

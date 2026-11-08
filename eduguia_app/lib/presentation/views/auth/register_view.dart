@@ -55,7 +55,7 @@ class _RegisterViewState extends State<RegisterView> {
 
     if (!mounted) return;
     if (session.haySesion) {
-      context.go('/inicio');
+      context.go('/home');
     } else {
       ErrorFeedback.show(context, session.errorExcepcion);
     }

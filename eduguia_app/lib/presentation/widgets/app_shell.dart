@@ -16,7 +16,7 @@ class AppShell extends StatelessWidget {
 
   static const List<_DestinoNav> _destinos = <_DestinoNav>[
     _DestinoNav(
-      path: '/inicio',
+      path: '/home',
       label: 'Inicio',
       icon: Icons.home_outlined,
       activeIcon: Icons.home,
@@ -28,7 +28,7 @@ class AppShell extends StatelessWidget {
       activeIcon: Icons.document_scanner,
     ),
     _DestinoNav(
-      path: '/historial',
+      path: '/history',
       label: 'Historial',
       icon: Icons.history_edu_outlined,
       activeIcon: Icons.history_edu,
@@ -42,9 +42,9 @@ class AppShell extends StatelessWidget {
   ];
 
   int get _indiceActual {
-    if (location.startsWith('/resultado')) return 1;
+    if (location.startsWith('/result')) return 1;
     if (location.startsWith('/premium')) return 3;
-    if (location.startsWith('/historial')) return 2;
+    if (location.startsWith('/history')) return 2;
     if (location.startsWith('/escanear')) return 1;
     return 0;
   }

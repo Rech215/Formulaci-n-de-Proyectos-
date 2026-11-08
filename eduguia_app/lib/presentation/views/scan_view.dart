@@ -126,7 +126,7 @@ class _ScanViewState extends State<ScanView> {
         }
       }
 
-      context.go('/resultado');
+      context.go('/result');
     } finally {
       if (mounted) {
         setState(() => _isLoading = false);

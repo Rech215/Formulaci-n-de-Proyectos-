@@ -72,7 +72,7 @@ class HomeView extends StatelessWidget {
                             icono: Icons.history_edu_outlined,
                             titulo: 'Historial',
                             subtitulo: 'Repasa tareas',
-                            onTap: () => context.go('/historial'),
+                            onTap: () => context.go('/history'),
                           ),
                         ),
                         const SizedBox(width: 12),
@@ -106,7 +106,7 @@ class HomeView extends StatelessWidget {
                         ),
                         if (tareas.isNotEmpty)
                           TextButton(
-                            onPressed: () => context.go('/historial'),
+                            onPressed: () => context.go('/history'),
                             child: const Text('Ver todo'),
                           ),
                       ],
@@ -335,7 +335,7 @@ class _TareaReciente extends StatelessWidget {
           borderRadius: BorderRadius.circular(18),
           onTap: () {
             context.read<AnalysisProvider>().mostrarTarea(tarea);
-            context.go('/resultado');
+            context.go('/result');
           },
           child: Container(
             padding: const EdgeInsets.all(14),

@@ -105,7 +105,7 @@ class AppDrawer extends StatelessWidget {
                     context,
                     icon: Icons.home_outlined,
                     label: 'Inicio',
-                    path: '/inicio',
+                    path: '/home',
                   ),
                   _drawerItem(
                     context,
@@ -117,7 +117,7 @@ class AppDrawer extends StatelessWidget {
                     context,
                     icon: Icons.history_edu_outlined,
                     label: 'Historial',
-                    path: '/historial',
+                    path: '/history',
                   ),
                   _drawerItem(
                     context,

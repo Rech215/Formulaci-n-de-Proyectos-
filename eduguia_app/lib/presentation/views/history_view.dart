@@ -115,7 +115,7 @@ class _HistoryViewState extends State<HistoryView> {
 
   void _abrir(Tarea tarea) {
     context.read<AnalysisProvider>().mostrarTarea(tarea);
-    context.go('/resultado');
+    context.go('/result');
   }
 
   @override

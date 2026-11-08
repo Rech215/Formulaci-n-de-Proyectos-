@@ -25,22 +25,32 @@ abstract class AppRouter {
     final refresh = Listenable.merge(<Listenable>[session, onboarding]);
 
     return GoRouter(
-      initialLocation: '/inicio',
+      initialLocation: '/home',
       refreshListenable: refresh,
       redirect: (context, state) {
         final path = state.uri.path;
         final enOnboarding = path == '/onboarding';
-        final enAuth = path == '/login' || path == '/registro';
+        final enAuth = path == '/login' || path == '/register';
         final enLegal = path.startsWith('/legal/');
 
-        if (onboarding.cargando) return '/onboarding';
-        if (!onboarding.completado && !enOnboarding) return '/onboarding';
-        if (onboarding.completado && enOnboarding) {
-          return session.haySesion ? '/inicio' : '/login';
+        if (onboarding.cargando) return null;
+
+        if (!onboarding.completado) {
+          return enOnboarding ? null : '/onboarding';
         }
+
+        if (enOnboarding) {
+          return session.haySesion ? '/home' : '/login';
+        }
+
         if (enLegal) return null;
-        if (!session.haySesion && !enAuth) return '/login';
-        if (session.haySesion && enAuth) return '/inicio';
+
+        if (!session.haySesion) {
+          return enAuth ? null : '/login';
+        }
+
+        if (enAuth) return '/home';
+
         return null;
       },
       routes: <RouteBase>[
@@ -57,8 +67,8 @@ abstract class AppRouter {
               _page(state, const LoginView(), fullscreen: true),
         ),
         GoRoute(
-          path: '/registro',
-          name: 'registro',
+          path: '/register',
+          name: 'register',
           pageBuilder: (context, state) =>
               _page(state, const RegisterView(), fullscreen: true),
         ),
@@ -86,8 +96,8 @@ abstract class AppRouter {
           },
           routes: <RouteBase>[
             GoRoute(
-              path: '/inicio',
-              name: 'inicio',
+              path: '/home',
+              name: 'home',
               pageBuilder: (context, state) => _page(state, const HomeView()),
             ),
             GoRoute(
@@ -96,14 +106,14 @@ abstract class AppRouter {
               pageBuilder: (context, state) => _page(state, const ScanView()),
             ),
             GoRoute(
-              path: '/historial',
-              name: 'historial',
+              path: '/history',
+              name: 'history',
               pageBuilder: (context, state) =>
                   _page(state, const HistoryView()),
             ),
             GoRoute(
-              path: '/resultado',
-              name: 'resultado',
+              path: '/result',
+              name: 'result',
               pageBuilder: (context, state) => _page(state, const ResultView()),
             ),
             GoRoute(

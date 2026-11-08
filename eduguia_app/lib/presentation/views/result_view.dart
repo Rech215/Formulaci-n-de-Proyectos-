@@ -352,7 +352,7 @@ class ResultView extends StatelessWidget {
                       children: <Widget>[
                         Expanded(
                           child: OutlinedButton.icon(
-                            onPressed: () => context.go('/historial'),
+                            onPressed: () => context.go('/history'),
                             icon: const Icon(Icons.history_edu_outlined),
                             label: const Text('Historial'),
                           ),
@@ -360,7 +360,7 @@ class ResultView extends StatelessWidget {
                         const SizedBox(width: 10),
                         Expanded(
                           child: OutlinedButton.icon(
-                            onPressed: () => context.go('/inicio'),
+                            onPressed: () => context.go('/home'),
                             icon: const Icon(Icons.home_outlined),
                             label: const Text('Inicio'),
                           ),

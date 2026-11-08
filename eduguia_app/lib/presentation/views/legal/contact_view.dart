@@ -14,7 +14,7 @@ class ContactView extends StatelessWidget {
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () =>
-              context.canPop() ? context.pop() : context.go('/inicio'),
+              context.canPop() ? context.pop() : context.go('/home'),
         ),
       ),
       body: ListView(

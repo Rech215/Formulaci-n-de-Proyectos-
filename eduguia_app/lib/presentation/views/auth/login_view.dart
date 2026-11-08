@@ -38,7 +38,7 @@ class _LoginViewState extends State<LoginView> {
 
     if (!mounted) return;
     if (session.haySesion) {
-      context.go('/inicio');
+      context.go('/home');
     } else {
       ErrorFeedback.show(context, session.errorExcepcion);
     }
@@ -189,7 +189,7 @@ class _LoginViewState extends State<LoginView> {
                           OutlinedButton(
                             onPressed: session.cargando
                                 ? null
-                                : () => context.go('/registro'),
+                                : () => context.go('/register'),
                             child: const Text('Crear una cuenta nueva'),
                           ),
                           const SizedBox(height: 20),
