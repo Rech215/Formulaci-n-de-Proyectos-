@@ -3,3 +3,14 @@ dist/
 *.log
 .env
 .env.*
+
+# Flutter & Android build artifacts
+build/
+**/build/
+*.apk
+*.aab
+*.ap_
+*.dex
+.dart_tool/
+**/android/.gradle/
+**/android/local.properties
