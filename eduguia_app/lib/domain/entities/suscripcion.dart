@@ -89,6 +89,8 @@ class Suscripcion {
   }
 
   static const int precioPremiumMxn = 69;
+  static const int escaneosDiariosGratis = 2;
+  static const int escaneosDiariosPremium = 10;
   static const Object _sinCambio = Object();
 
   final String id;
@@ -103,6 +105,9 @@ class Suscripcion {
   bool get esPremium => tipoPlan == TipoPlan.premium;
 
   bool get esIlimitada => limiteConsultas == null;
+
+  int get limiteEscaneosDiarios =>
+      esPremium ? escaneosDiariosPremium : escaneosDiariosGratis;
 
   int get precioMensual => esPremium ? precioPremiumMxn : 0;
 

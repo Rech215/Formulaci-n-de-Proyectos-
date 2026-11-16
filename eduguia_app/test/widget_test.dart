@@ -1,7 +1,6 @@
 import 'package:eduguia_app/app.dart';
 import 'package:eduguia_app/core/router/app_router.dart';
 import 'package:eduguia_app/data/repositories/in_memory_edu_guia_repository.dart';
-import 'package:eduguia_app/domain/entities/hijo.dart';
 import 'package:eduguia_app/domain/usecases/edu_guia_use_cases.dart';
 import 'package:eduguia_app/presentation/state/analysis_provider.dart';
 import 'package:eduguia_app/presentation/state/onboarding_provider.dart';
@@ -23,13 +22,12 @@ void main() {
 
     await onboarding.cargar();
     await onboarding.completar();
-    await session.registrar(
-      nombre: 'Ana',
-      correo: 'ana@mail.com',
-      password: 'secreto123',
-      hijos: <Hijo>[
-        Hijo(nombre: 'Mateo', edad: 9, gradoEscolar: '4to Primaria'),
-      ],
+    await tester.runAsync(
+      () => session.registrar(
+        nombre: 'Ana',
+        correo: 'ana@mail.com',
+        password: 'secreto123',
+      ),
     );
 
     await tester.pumpWidget(

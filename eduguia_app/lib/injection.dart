@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:get_it/get_it.dart';
 
 import 'data/remote/api_client.dart';
@@ -9,9 +10,11 @@ import 'data/repositories/mock_pagos_repository.dart';
 import 'data/services/historial_service.dart';
 import 'data/services/image_cropper_service.dart';
 import 'data/services/pagos_service.dart';
+import 'data/services/scan_quota_service.dart';
 import 'domain/repositories/edu_guia_repository.dart';
 import 'domain/repositories/historial_repository.dart';
 import 'domain/repositories/pagos_repository.dart';
+import 'domain/repositories/scan_quota_repository.dart';
 import 'domain/services/image_editor_service.dart';
 import 'domain/usecases/edu_guia_use_cases.dart';
 import 'presentation/state/analysis_provider.dart';
@@ -27,9 +30,15 @@ final GetIt getIt = GetIt.instance;
 Future<void> configureDependencies({bool? useMocks}) async {
   await ApiConfig.load();
 
-  final usarMocks = useMocks ?? ApiConfig.useMocks;
+  // En el entorno de desarrollo (debug) se fuerzan los repositorios Mock o
+  // InMemory para no depender del backend Node.js. En release se respeta la
+  // configuración de .env o el valor explícito recibido.
+  final usarMocks = useMocks ?? (kDebugMode || ApiConfig.useMocks);
 
   getIt.registerLazySingleton<HistorialRepository>(() => HistorialService());
+  getIt.registerLazySingleton<ScanQuotaRepository>(
+    () => ScanQuotaService(),
+  );
   getIt.registerLazySingleton<ImageEditorService>(() => ImageCropperService());
   getIt.registerLazySingleton<OnboardingProvider>(() => OnboardingProvider());
 
@@ -61,6 +70,7 @@ Future<void> configureDependencies({bool? useMocks}) async {
     () => SessionProvider(
       useCases: getIt<EduGuiaUseCases>(),
       pagosRepository: getIt<PagosRepository>(),
+      scanQuotaRepository: getIt<ScanQuotaRepository>(),
     ),
   );
 

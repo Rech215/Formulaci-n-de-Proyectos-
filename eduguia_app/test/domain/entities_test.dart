@@ -81,7 +81,7 @@ void main() {
   });
 
   group('Suscripcion', () {
-    test('el plan gratuito es ilimitado y cuenta los escaneos', () {
+    test('el plan gratuito no impone límite mensual y cuenta los escaneos', () {
       var suscripcion = Suscripcion(id: 's1', padreId: 'p1');
 
       expect(suscripcion.limiteConsultas, isNull);
@@ -94,6 +94,18 @@ void main() {
       expect(suscripcion.consultasUsadas, 10);
       expect(suscripcion.puedeConsultar(), isTrue);
       expect(suscripcion.esIlimitada, isTrue);
+    });
+
+    test('define cuotas diarias de 2 y 10 escaneos', () {
+      final gratuito = Suscripcion(id: 's1', padreId: 'p1');
+      final premium = Suscripcion(
+        id: 's2',
+        padreId: 'p1',
+        tipoPlan: TipoPlan.premium,
+      );
+
+      expect(gratuito.limiteEscaneosDiarios, 2);
+      expect(premium.limiteEscaneosDiarios, 10);
     });
 
     test('premium cuesta 69 y no permite cambiar al mismo plan', () {

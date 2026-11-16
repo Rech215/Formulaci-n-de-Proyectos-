@@ -96,11 +96,14 @@ class TermsView extends StatelessWidget {
                   ),
                   const _Seccion(
                     titulo: '4. Plan Gratis y Premium',
-                    texto: 'El plan Gratis permite escaneos ilimitados con un '
-                        'anuncio después de cada escaneo. Premium cuesta '
-                        '\$${Suscripcion.precioPremiumMxn} MXN al mes y elimina '
-                        'los anuncios. El cobro se gestiona mediante la tienda '
-                        'de tu dispositivo.',
+                    texto: 'El plan Gratis permite '
+                        '${Suscripcion.escaneosDiariosGratis} escaneos al día '
+                        'con un anuncio previo a cada escaneo. Premium cuesta '
+                        '\$${Suscripcion.precioPremiumMxn} MXN al mes, permite '
+                        '${Suscripcion.escaneosDiariosPremium} escaneos al día '
+                        'sin anuncios e incluye el historial de guías. Los '
+                        'límites se reinician cada día. El cobro se gestiona '
+                        'mediante la tienda de tu dispositivo.',
                   ),
                   const _Seccion(
                     titulo: '5. Cancelación y reembolsos',

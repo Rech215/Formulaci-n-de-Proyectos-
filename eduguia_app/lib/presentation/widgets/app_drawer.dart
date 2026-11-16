@@ -62,8 +62,8 @@ class AppDrawer extends StatelessWidget {
                     ),
                     child: Text(
                       premium
-                          ? 'Premium · Sin anuncios'
-                          : 'Gratis · Escaneos con anuncios',
+                          ? 'Premium · 10 escaneos al día'
+                          : 'Gratis · 2 escaneos al día',
                       style: const TextStyle(
                         color: Colors.white,
                         fontSize: 12,
@@ -115,8 +115,10 @@ class AppDrawer extends StatelessWidget {
                   ),
                   _drawerItem(
                     context,
-                    icon: Icons.history_edu_outlined,
-                    label: 'Historial',
+                    icon: premium
+                        ? Icons.history_edu_outlined
+                        : Icons.lock_outline,
+                    label: premium ? 'Historial' : 'Historial · Premium',
                     path: '/history',
                   ),
                   _drawerItem(

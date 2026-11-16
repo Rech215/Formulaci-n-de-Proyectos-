@@ -64,6 +64,11 @@ class _ScanViewState extends State<ScanView> {
   }
 
   Future<void> _seleccionar(ImageSource source) async {
+    if (!context.read<SessionProvider>().puedeEscanearHoy) {
+      _mostrarLimiteAlcanzado();
+      return;
+    }
+
     try {
       final foto = await _capturarYRecortar(source);
       if (foto == null || !mounted) return;
@@ -89,13 +94,30 @@ class _ScanViewState extends State<ScanView> {
     final padre = session.padre;
     if (padre == null || _imagen == null) return;
 
+    if (!session.puedeEscanearHoy) {
+      _mostrarLimiteAlcanzado();
+      return;
+    }
+
+    if (!session.esPremium) {
+      final quierePremium = await showAdInterstitial(context);
+      if (!mounted) return;
+      if (quierePremium) {
+        context.go('/premium');
+        return;
+      }
+    }
+
     setState(() => _isLoading = true);
 
     try {
+      final nombreHijo =
+          _hijoSeleccionado.trim().isEmpty ? 'Mi hijo' : _hijoSeleccionado;
+
       await analysis.analizarTarea(
         padreId: padre.id,
         imagenPath: _imagen!.path,
-        nombreHijo: _hijoSeleccionado,
+        nombreHijo: nombreHijo,
       );
 
       if (!mounted) return;
@@ -108,7 +130,10 @@ class _ScanViewState extends State<ScanView> {
       final tarea = analysis.tareaActual;
       if (tarea == null) return;
 
-      await getIt<HistorialRepository>().guardar(padre.id, tarea);
+      if (session.esPremium) {
+        await getIt<HistorialRepository>().guardar(padre.id, tarea);
+      }
+      await session.registrarEscaneoHoy();
       await session.recargar();
 
       if (!mounted) return;
@@ -117,21 +142,34 @@ class _ScanViewState extends State<ScanView> {
         ErrorFeedback.show(context, session.errorExcepcion);
       }
 
-      if (!session.esPremium) {
-        final quierePremium = await showAdInterstitial(context);
-        if (!mounted) return;
-        if (quierePremium) {
-          context.go('/premium');
-          return;
-        }
-      }
-
       context.go('/result');
     } finally {
       if (mounted) {
         setState(() => _isLoading = false);
       }
     }
+  }
+
+  void _mostrarLimiteAlcanzado() {
+    final session = context.read<SessionProvider>();
+    final mensaje = session.esPremium
+        ? 'Ya usaste tus 10 escaneos Premium de hoy. Vuelve mañana.'
+        : 'Ya usaste tus 2 escaneos gratis de hoy. '
+            'Premium te da 10 escaneos al día.';
+
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(
+          content: Text(mensaje),
+          action: session.esPremium
+              ? null
+              : SnackBarAction(
+                  label: 'Ver Premium',
+                  onPressed: () => context.go('/premium'),
+                ),
+        ),
+      );
   }
 
   void _reiniciar() {
@@ -160,6 +198,8 @@ class _ScanViewState extends State<ScanView> {
                       _buildAnalizando()
                     else if (analysis.estado == EstadoAnalisis.error)
                       _buildError(analysis)
+                    else if (!session.puedeEscanearHoy && _imagen == null)
+                      _buildLimiteAlcanzado(session)
                     else if (_imagen == null)
                       _buildEstadoVacio()
                     else
@@ -201,38 +241,135 @@ class _ScanViewState extends State<ScanView> {
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
           decoration: BoxDecoration(
-            color: session.esPremium ? AppColors.brand50 : AppColors.yellow100,
+            color: session.puedeEscanearHoy
+                ? session.esPremium
+                    ? AppColors.brand50
+                    : AppColors.yellow100
+                : AppColors.red100,
             borderRadius: BorderRadius.circular(999),
           ),
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: <Widget>[
               Icon(
-                session.esPremium
-                    ? Icons.all_inclusive
-                    : Icons.campaign_outlined,
+                session.puedeEscanearHoy
+                    ? session.esPremium
+                        ? Icons.bolt_outlined
+                        : Icons.campaign_outlined
+                    : Icons.lock_clock_outlined,
                 size: 16,
-                color: session.esPremium
-                    ? AppColors.brand600
-                    : AppColors.yellow600,
+                color: !session.puedeEscanearHoy
+                    ? AppColors.red600
+                    : session.esPremium
+                        ? AppColors.brand600
+                        : AppColors.yellow600,
               ),
               const SizedBox(width: 6),
               Text(
-                session.esPremium
-                    ? 'Escaneos ilimitados sin anuncios'
-                    : 'Escaneos gratis · con anuncio',
+                !session.puedeEscanearHoy
+                    ? 'Límite de hoy alcanzado'
+                    : session.esPremium
+                        ? '10 escaneos al día · quedan '
+                            '${session.escaneosRestantesHoy}'
+                        : '2 escaneos al día · quedan '
+                            '${session.escaneosRestantesHoy}',
                 style: TextStyle(
                   fontSize: 12,
                   fontWeight: FontWeight.w600,
-                  color: session.esPremium
-                      ? AppColors.brand700
-                      : AppColors.yellow600,
+                  color: !session.puedeEscanearHoy
+                      ? AppColors.red600
+                      : session.esPremium
+                          ? AppColors.brand700
+                          : AppColors.yellow600,
                 ),
               ),
             ],
           ),
         ),
       ],
+    );
+  }
+
+  Widget _buildLimiteAlcanzado(SessionProvider session) {
+    final premium = session.esPremium;
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 40),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(26),
+        border: Border.all(color: AppColors.slate200),
+      ),
+      child: Column(
+        children: <Widget>[
+          Container(
+            padding: const EdgeInsets.all(18),
+            decoration: const BoxDecoration(
+              color: AppColors.red100,
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(
+              Icons.lock_clock_outlined,
+              size: 40,
+              color: AppColors.red600,
+            ),
+          ),
+          const SizedBox(height: 18),
+          Text(
+            premium
+                ? 'Ya usaste tus 10 escaneos de hoy'
+                : 'Ya usaste tus 2 escaneos gratis de hoy',
+            textAlign: TextAlign.center,
+            style: const TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.w800,
+              color: AppColors.slate900,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            premium
+                ? 'Tu cuota Premium se renueva mañana. Mientras tanto, puedes '
+                    'repasar tus guías guardadas en el historial.'
+                : 'Tu cuota gratuita se reinicia mañana. Con Premium obtienes '
+                    '10 escaneos al día, sin anuncios y con historial de guías '
+                    'exclusivo.',
+            textAlign: TextAlign.center,
+            style: const TextStyle(
+              color: AppColors.slate500,
+              fontSize: 14,
+              height: 1.5,
+            ),
+          ),
+          const SizedBox(height: 24),
+          if (!premium)
+            SizedBox(
+              width: double.infinity,
+              child: FilledButton.icon(
+                onPressed: () => context.go('/premium'),
+                icon: const Icon(Icons.workspace_premium_outlined, size: 20),
+                label: const Text('Conocer Premium · 10 al día'),
+              ),
+            )
+          else
+            SizedBox(
+              width: double.infinity,
+              child: OutlinedButton.icon(
+                onPressed: () => context.go('/history'),
+                icon: const Icon(Icons.history_edu_outlined, size: 20),
+                label: const Text('Ver mi historial'),
+              ),
+            ),
+          if (!premium) ...<Widget>[
+            const SizedBox(height: 8),
+            TextButton(
+              onPressed: () => context.go('/home'),
+              child: const Text('Volver al inicio'),
+            ),
+          ],
+        ],
+      ),
     );
   }
 

@@ -3,10 +3,8 @@ import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
 import '../../../core/theme/app_colors.dart';
-import '../../../domain/entities/hijo.dart';
 import '../../state/session_provider.dart';
 import '../../widgets/brand_logo.dart';
-import '../../widgets/error_feedback.dart';
 
 class RegisterView extends StatefulWidget {
   const RegisterView({super.key});
@@ -20,9 +18,6 @@ class _RegisterViewState extends State<RegisterView> {
   final _nombre = TextEditingController();
   final _correo = TextEditingController();
   final _password = TextEditingController();
-  final _hijoNombre = TextEditingController();
-  final _hijoEdad = TextEditingController();
-  final _hijoGrado = TextEditingController();
   bool _ocultar = true;
 
   @override
@@ -30,34 +25,25 @@ class _RegisterViewState extends State<RegisterView> {
     _nombre.dispose();
     _correo.dispose();
     _password.dispose();
-    _hijoNombre.dispose();
-    _hijoEdad.dispose();
-    _hijoGrado.dispose();
     super.dispose();
   }
 
   Future<void> _registrar() async {
     if (!_formKey.currentState!.validate()) return;
 
-    final session = context.read<SessionProvider>();
-    await session.registrar(
-      nombre: _nombre.text.trim(),
-      correo: _correo.text.trim(),
-      password: _password.text,
-      hijos: <Hijo>[
-        Hijo(
-          nombre: _hijoNombre.text.trim(),
-          edad: int.parse(_hijoEdad.text.trim()),
-          gradoEscolar: _hijoGrado.text.trim(),
-        ),
-      ],
-    );
+    final success = await context.read<SessionProvider>().registrar(
+          nombre: _nombre.text.trim(),
+          correo: _correo.text.trim(),
+          password: _password.text,
+        );
 
-    if (!mounted) return;
-    if (session.haySesion) {
+    if (!mounted || !context.mounted) return;
+    if (success) {
       context.go('/home');
     } else {
-      ErrorFeedback.show(context, session.errorExcepcion);
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Error al crear la cuenta')),
+      );
     }
   }
 
@@ -93,8 +79,8 @@ class _RegisterViewState extends State<RegisterView> {
                     ),
                     const SizedBox(height: 6),
                     const Text(
-                      'Necesitamos un hijo para personalizar el análisis de '
-                      'sus tareas.',
+                      'Crea tu cuenta de padre o tutor. No solicitamos datos '
+                      'personales de tus hijos.',
                       style: TextStyle(
                         color: AppColors.slate500,
                         fontSize: 14,
@@ -145,7 +131,8 @@ class _RegisterViewState extends State<RegisterView> {
                     TextFormField(
                       controller: _password,
                       obscureText: _ocultar,
-                      textInputAction: TextInputAction.next,
+                      textInputAction: TextInputAction.done,
+                      onFieldSubmitted: (_) => _registrar(),
                       decoration: InputDecoration(
                         labelText: 'Contraseña',
                         prefixIcon: const Icon(Icons.lock_outline),
@@ -166,71 +153,6 @@ class _RegisterViewState extends State<RegisterView> {
                           : null,
                     ),
                     const SizedBox(height: 22),
-                    const Text(
-                      'TU HIJO',
-                      style: TextStyle(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w800,
-                        color: AppColors.brand600,
-                        letterSpacing: 1,
-                      ),
-                    ),
-                    const SizedBox(height: 10),
-                    TextFormField(
-                      controller: _hijoNombre,
-                      textInputAction: TextInputAction.next,
-                      textCapitalization: TextCapitalization.words,
-                      decoration: const InputDecoration(
-                        labelText: 'Nombre del hijo',
-                        prefixIcon: Icon(Icons.child_care_outlined),
-                      ),
-                      validator: (valor) => (valor?.trim().isEmpty ?? true)
-                          ? 'Escribe el nombre de tu hijo.'
-                          : null,
-                    ),
-                    const SizedBox(height: 12),
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: <Widget>[
-                        Expanded(
-                          child: TextFormField(
-                            controller: _hijoEdad,
-                            keyboardType: TextInputType.number,
-                            textInputAction: TextInputAction.next,
-                            decoration: const InputDecoration(
-                              labelText: 'Edad',
-                              prefixIcon: Icon(Icons.cake_outlined),
-                            ),
-                            validator: (valor) {
-                              final edad = int.tryParse(valor?.trim() ?? '');
-                              if (edad == null || edad < 3 || edad > 18) {
-                                return 'De 3 a 18 años.';
-                              }
-                              return null;
-                            },
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          flex: 2,
-                          child: TextFormField(
-                            controller: _hijoGrado,
-                            textInputAction: TextInputAction.done,
-                            onFieldSubmitted: (_) => _registrar(),
-                            decoration: const InputDecoration(
-                              labelText: 'Grado escolar',
-                              hintText: '4to Primaria',
-                              prefixIcon: Icon(Icons.school_outlined),
-                            ),
-                            validator: (valor) =>
-                                (valor?.trim().isEmpty ?? true)
-                                    ? 'Indica el grado.'
-                                    : null,
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 24),
                     if (session.error != null) ...<Widget>[
                       Container(
                         padding: const EdgeInsets.all(12),

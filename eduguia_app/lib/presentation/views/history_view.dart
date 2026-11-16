@@ -29,6 +29,15 @@ class _HistoryViewState extends State<HistoryView> {
     final session = context.watch<SessionProvider>();
     final padreId = session.padre?.id;
 
+    if (!session.esPremium) {
+      _inicializado = true;
+      _padreId = null;
+      _tareas = const <Tarea>[];
+      _error = null;
+      _cargando = false;
+      return;
+    }
+
     if (!_inicializado || padreId != _padreId) {
       _inicializado = true;
       _padreId = padreId;
@@ -120,6 +129,9 @@ class _HistoryViewState extends State<HistoryView> {
 
   @override
   Widget build(BuildContext context) {
+    final session = context.watch<SessionProvider>();
+    if (!session.esPremium) return _buildPaywall();
+
     return RefreshIndicator(
       color: AppColors.brand600,
       onRefresh: () async {
@@ -164,6 +176,97 @@ class _HistoryViewState extends State<HistoryView> {
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildPaywall() {
+    return ListView(
+      padding: const EdgeInsets.fromLTRB(20, 20, 20, 32),
+      children: <Widget>[
+        Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 640),
+            child: Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 40),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(26),
+                border: Border.all(color: AppColors.brand200),
+              ),
+              child: Column(
+                children: <Widget>[
+                  Container(
+                    padding: const EdgeInsets.all(18),
+                    decoration: const BoxDecoration(
+                      color: AppColors.brand50,
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(
+                      Icons.lock_outline,
+                      size: 40,
+                      color: AppColors.brand700,
+                    ),
+                  ),
+                  const SizedBox(height: 18),
+                  const Text(
+                    'Historial exclusivo de Premium',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 22,
+                      fontWeight: FontWeight.w800,
+                      color: AppColors.slate900,
+                      height: 1.2,
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  const Text(
+                    'Guardar y repasar las guías de tus tareas es un beneficio '
+                    'del Plan Premium. Actualiza para conservar el método SEP y '
+                    'las preguntas guía de cada escaneo.',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      color: AppColors.slate500,
+                      fontSize: 14,
+                      height: 1.5,
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  const _BeneficioPaywall(
+                    icono: Icons.history_edu_outlined,
+                    texto: 'Historial guardado en este dispositivo',
+                  ),
+                  const _BeneficioPaywall(
+                    icono: Icons.bolt_outlined,
+                    texto: '10 escaneos al día sin anuncios',
+                  ),
+                  const _BeneficioPaywall(
+                    icono: Icons.menu_book_outlined,
+                    texto: 'Repasa el método SEP y las preguntas guía',
+                  ),
+                  const SizedBox(height: 24),
+                  SizedBox(
+                    width: double.infinity,
+                    child: FilledButton.icon(
+                      onPressed: () => context.go('/premium'),
+                      icon: const Icon(
+                        Icons.workspace_premium_outlined,
+                        size: 20,
+                      ),
+                      label: const Text('Conocer Premium · \$69/mes'),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  TextButton(
+                    onPressed: () => context.go('/home'),
+                    child: const Text('Volver al inicio'),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ],
     );
   }
 
@@ -287,6 +390,36 @@ class _HistoryViewState extends State<HistoryView> {
               onPressed: () => context.go('/escanear'),
               icon: const Icon(Icons.photo_camera_outlined, size: 20),
               label: const Text('Escanear una tarea'),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _BeneficioPaywall extends StatelessWidget {
+  const _BeneficioPaywall({required this.icono, required this.texto});
+
+  final IconData icono;
+  final String texto;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 10),
+      child: Row(
+        children: <Widget>[
+          Icon(icono, size: 18, color: AppColors.brand600),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              texto,
+              style: const TextStyle(
+                color: AppColors.slate700,
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+              ),
             ),
           ),
         ],

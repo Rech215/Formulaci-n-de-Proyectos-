@@ -5,7 +5,6 @@ import 'package:provider/provider.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../state/session_provider.dart';
 import '../../widgets/brand_logo.dart';
-import '../../widgets/error_feedback.dart';
 
 class LoginView extends StatefulWidget {
   const LoginView({super.key});
@@ -30,17 +29,18 @@ class _LoginViewState extends State<LoginView> {
   Future<void> _entrar() async {
     if (!_formKey.currentState!.validate()) return;
 
-    final session = context.read<SessionProvider>();
-    await session.iniciarSesion(
-      correo: _correo.text.trim(),
-      password: _password.text,
-    );
+    final success = await context.read<SessionProvider>().iniciarSesion(
+          correo: _correo.text.trim(),
+          password: _password.text,
+        );
 
-    if (!mounted) return;
-    if (session.haySesion) {
+    if (!mounted || !context.mounted) return;
+    if (success) {
       context.go('/home');
     } else {
-      ErrorFeedback.show(context, session.errorExcepcion);
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Error al iniciar sesión')),
+      );
     }
   }
 

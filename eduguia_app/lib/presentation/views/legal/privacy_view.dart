@@ -52,16 +52,17 @@ class PrivacyView extends StatelessWidget {
                   _Seccion(
                     titulo: '2. Datos que recabamos',
                     texto: 'Nombre del padre o tutor, correo electrónico, '
-                        'contraseña cifrada, nombre y edad de los hijos, grado '
-                        'escolar e imágenes de las tareas que decides escanear.',
+                        'contraseña cifrada e imágenes de las tareas que decides '
+                        'escanear. En el registro no solicitamos nombre, edad ni '
+                        'grado escolar de tus hijos.',
                   ),
                   _Seccion(
                     titulo: '3. Finalidades',
                     texto:
                         'Usamos los datos para crear tu cuenta, analizar las '
                         'tareas, generar explicaciones y preguntas guía, '
-                        'guardar tu historial local y gestionar la suscripción '
-                        'Premium. No vendemos tus datos.',
+                        'guardar tu historial local cuando tienes Premium y '
+                        'gestionar la suscripción. No vendemos tus datos.',
                   ),
                   _Seccion(
                     titulo: '4. Imágenes de tareas',

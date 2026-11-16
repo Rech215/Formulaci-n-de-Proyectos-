@@ -82,14 +82,14 @@ class Plan {
     return Plan(
       id: 'gratuito',
       nombre: 'Gratis',
-      descripcion: 'Escanea tus tareas sin costo, con anuncios.',
+      descripcion: 'Dos escaneos al día sin costo y con anuncios.',
       precioMensual: 0,
       limiteConsultas: null,
       beneficios: const <String>[
-        'Escaneos ilimitados',
+        '2 escaneos al día',
         'Explicación del método escolar (SEP)',
         'Preguntas guía básicas',
-        'Con anuncios entre escaneos',
+        'Con anuncio antes de cada escaneo',
       ],
     );
   }
@@ -98,15 +98,16 @@ class Plan {
     return Plan(
       id: 'premium',
       nombre: 'Premium',
-      descripcion: 'Acompañamiento sin anuncios para tu hijo.',
+      descripcion:
+          'Diez escaneos diarios sin anuncios para acompañar a tu hijo.',
       precioMensual: 69,
       limiteConsultas: null,
       beneficios: const <String>[
-        'Escaneos ilimitados',
+        '10 escaneos al día',
         'Sin anuncios',
+        'Historial de guías exclusivo',
         'Preguntas guía adaptadas a su edad',
         'Alineación curricular SEP',
-        'Resumen semanal de logros y áreas de mejora',
         'Ideas de juegos para la vida diaria',
       ],
       destacado: true,

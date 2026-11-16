@@ -6,7 +6,6 @@ import '../../core/theme/app_colors.dart';
 import '../../domain/entities/tarea.dart';
 import '../state/analysis_provider.dart';
 import '../state/session_provider.dart';
-import '../widgets/plan_badge.dart';
 
 class HomeView extends StatelessWidget {
   const HomeView({super.key});
@@ -27,34 +26,27 @@ class HomeView extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: <Widget>[
-                    Row(
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: <Widget>[
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: <Widget>[
-                              Text(
-                                _saludo(),
-                                style: const TextStyle(
-                                  color: AppColors.slate500,
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                              const SizedBox(height: 2),
-                              Text(
-                                padre?.nombre ?? 'Familia',
-                                style: const TextStyle(
-                                  color: AppColors.slate900,
-                                  fontSize: 24,
-                                  fontWeight: FontWeight.w800,
-                                  letterSpacing: -0.5,
-                                ),
-                              ),
-                            ],
+                        Text(
+                          _saludo(),
+                          style: const TextStyle(
+                            color: AppColors.slate500,
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600,
                           ),
                         ),
-                        PlanBadge(premium: session.esPremium),
+                        const SizedBox(height: 2),
+                        Text(
+                          padre?.nombre ?? 'Familia',
+                          style: const TextStyle(
+                            color: AppColors.slate900,
+                            fontSize: 24,
+                            fontWeight: FontWeight.w800,
+                            letterSpacing: -0.5,
+                          ),
+                        ),
                       ],
                     ),
                     const SizedBox(height: 20),
@@ -62,16 +54,29 @@ class HomeView extends StatelessWidget {
                       hijo: padre != null && padre.hijos.isNotEmpty
                           ? padre.hijos.first.nombre
                           : null,
+                      restantes: session.escaneosRestantesHoy,
+                      limite: session.limiteEscaneosDiarios,
+                    ),
+                    const SizedBox(height: 16),
+                    _IndicadorEscaneos(
+                      usados: session.escaneosUsadosHoy,
+                      limite: session.limiteEscaneosDiarios,
+                      restantes: session.escaneosRestantesHoy,
                       premium: session.esPremium,
+                      cargando: !session.cuotaCargada,
                     ),
                     const SizedBox(height: 16),
                     Row(
                       children: <Widget>[
                         Expanded(
                           child: _AccesoRapido(
-                            icono: Icons.history_edu_outlined,
+                            icono: session.esPremium
+                                ? Icons.history_edu_outlined
+                                : Icons.lock_outline,
                             titulo: 'Historial',
-                            subtitulo: 'Repasa tareas',
+                            subtitulo: session.esPremium
+                                ? 'Repasa tareas'
+                                : 'Exclusivo Premium',
                             onTap: () => context.go('/history'),
                           ),
                         ),
@@ -135,10 +140,15 @@ class HomeView extends StatelessWidget {
 }
 
 class _TarjetaEscanear extends StatelessWidget {
-  const _TarjetaEscanear({required this.hijo, required this.premium});
+  const _TarjetaEscanear({
+    required this.hijo,
+    required this.restantes,
+    required this.limite,
+  });
 
   final String? hijo;
-  final bool premium;
+  final int restantes;
+  final int limite;
 
   @override
   Widget build(BuildContext context) {
@@ -191,7 +201,9 @@ class _TarjetaEscanear extends StatelessWidget {
                       borderRadius: BorderRadius.circular(999),
                     ),
                     child: Text(
-                      premium ? 'Sin anuncios' : 'Gratis',
+                      restantes == 0
+                          ? 'Sin escaneos hoy'
+                          : '$restantes de $limite hoy',
                       style: const TextStyle(
                         color: Colors.white,
                         fontSize: 11,
@@ -264,6 +276,115 @@ class _TarjetaEscanear extends StatelessWidget {
             ],
           ),
         ),
+      ),
+    );
+  }
+}
+
+class _IndicadorEscaneos extends StatelessWidget {
+  const _IndicadorEscaneos({
+    required this.usados,
+    required this.limite,
+    required this.restantes,
+    required this.premium,
+    required this.cargando,
+  });
+
+  final int usados;
+  final int limite;
+  final int restantes;
+  final bool premium;
+  final bool cargando;
+
+  @override
+  Widget build(BuildContext context) {
+    final agotado = restantes == 0;
+    final color = agotado ? AppColors.yellow600 : AppColors.brand600;
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(
+          color: agotado && !premium
+              ? AppColors.yellow600.withAlpha(110)
+              : AppColors.slate200,
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          Row(
+            children: <Widget>[
+              Icon(
+                agotado ? Icons.lock_clock_outlined : Icons.today_outlined,
+                color: color,
+                size: 20,
+              ),
+              const SizedBox(width: 8),
+              const Expanded(
+                child: Text(
+                  'Escaneos de hoy',
+                  style: TextStyle(
+                    color: AppColors.slate900,
+                    fontWeight: FontWeight.w800,
+                    fontSize: 14,
+                  ),
+                ),
+              ),
+              Text(
+                cargando ? '...' : '$usados de $limite',
+                style: TextStyle(
+                  color: color,
+                  fontWeight: FontWeight.w800,
+                  fontSize: 13,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(999),
+            child: LinearProgressIndicator(
+              value: limite == 0
+                  ? 0
+                  : (usados / limite).clamp(0.0, 1.0).toDouble(),
+              minHeight: 6,
+              backgroundColor: AppColors.slate100,
+              color: color,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            cargando
+                ? 'Calculando tu cuota diaria...'
+                : agotado
+                    ? premium
+                        ? 'Alcanzaste tus 10 escaneos Premium de hoy. '
+                            'Vuelve mañana.'
+                        : 'Alcanzaste tus 2 escaneos gratis de hoy.'
+                    : 'Te quedan $restantes escaneos '
+                        '${premium ? 'Premium' : 'gratis'} hoy.',
+            style: const TextStyle(
+              color: AppColors.slate500,
+              fontSize: 12,
+              height: 1.4,
+            ),
+          ),
+          if (!premium && !cargando && agotado) ...<Widget>[
+            const SizedBox(height: 10),
+            SizedBox(
+              width: double.infinity,
+              child: FilledButton.icon(
+                onPressed: () => context.go('/premium'),
+                icon: const Icon(Icons.workspace_premium_outlined, size: 18),
+                label: const Text('Pasar a Premium · 10 al día'),
+              ),
+            ),
+          ],
+        ],
       ),
     );
   }

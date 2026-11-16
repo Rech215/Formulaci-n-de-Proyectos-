@@ -33,7 +33,7 @@ void main() {
     },
   );
 
-  test('permite escaneos ilimitados y cuenta el uso', () async {
+  test('registra escaneos y cuenta el uso del backend', () async {
     final padre = await repository.registrarPadre(
       nombre: 'Ana',
       correo: 'ana@mail.com',

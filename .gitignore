@@ -11,6 +11,7 @@ build/
 *.aab
 *.ap_
 *.dex
+*.zip
 .dart_tool/
 **/android/.gradle/
 **/android/local.properties

@@ -10,11 +10,11 @@ class PremiumView extends StatelessWidget {
   const PremiumView({super.key});
 
   static const List<String> _beneficios = <String>[
-    'Escaneos ilimitados',
-    'Sin anuncios entre tareas',
+    '10 escaneos al día sin anuncios',
+    'Historial de guías exclusivo en el dispositivo',
     'Preguntas guía adaptadas a la edad',
     'Alineación curricular SEP',
-    'Historial de tareas en el dispositivo',
+    'Ideal para las tareas diarias de primaria',
     'Ideas de juegos para la vida diaria',
   ];
 
@@ -159,12 +159,37 @@ class PremiumView extends StatelessWidget {
           ),
           const SizedBox(height: 8),
           Text(
-            'Acompaña a tu hijo sin interrupciones y con más herramientas '
-            'para cada tarea.',
+            'Acompaña a tu hijo sin interrupciones: 10 escaneos al día, '
+            'historial de guías y más herramientas para cada tarea.',
             style: TextStyle(
               color: Colors.white.withAlpha(220),
               fontSize: 14,
               height: 1.5,
+            ),
+          ),
+          const SizedBox(height: 16),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            decoration: BoxDecoration(
+              color: Colors.white.withAlpha(36),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: const Row(
+              children: <Widget>[
+                Icon(Icons.today_outlined, color: Colors.white, size: 16),
+                SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    'Gratis: 2 escaneos al día · Premium: 10 escaneos al día',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      height: 1.4,
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
           const SizedBox(height: 20),
@@ -241,8 +266,8 @@ class PremiumView extends StatelessWidget {
           ),
           const SizedBox(height: 12),
           const Text(
-            'Disfruta escaneos sin anuncios y todas las herramientas de '
-            'acompañamiento.',
+            'Disfruta 10 escaneos al día sin anuncios, historial de guías y '
+            'todas las herramientas de acompañamiento.',
             style: TextStyle(
               color: AppColors.slate500,
               fontSize: 14,

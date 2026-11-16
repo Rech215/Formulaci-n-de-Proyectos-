@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import '../../core/theme/app_colors.dart';
 
 /// Anuncio intersticial simulado que se muestra a los usuarios gratuitos
-/// después de cada escaneo. Devuelve `true` si el usuario pidió ver Premium.
+/// antes de cada escaneo. Devuelve `true` si el usuario pidió ver Premium.
 Future<bool> showAdInterstitial(BuildContext context) async {
   final resultado = await showDialog<bool>(
     context: context,
@@ -128,7 +128,7 @@ class _AdInterstitialDialogState extends State<_AdInterstitialDialog> {
                 child: Text(
                   _segundos > 0
                       ? 'Espera $_segundos s'
-                      : 'Continuar al resultado',
+                      : 'Continuar al escaneo',
                 ),
               ),
             ),

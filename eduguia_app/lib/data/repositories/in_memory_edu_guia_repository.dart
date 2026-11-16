@@ -156,7 +156,7 @@ class InMemoryEduGuiaRepository implements BaseEduGuiaRepository {
     if (!suscripcion.puedeConsultar()) {
       throw const DomainException(
         'Has alcanzado el límite de consultas de tu plan. '
-        'Actualiza a Premium para consultas ilimitadas.',
+        'Actualiza a Premium para obtener 10 escaneos al día.',
       );
     }
 
@@ -278,6 +278,26 @@ class InMemoryEduGuiaRepository implements BaseEduGuiaRepository {
           .length,
       cantidadHijos: padre.hijos.length,
     );
+  }
+
+  /// Busca un padre por correo sin lanzar excepción.
+  ///
+  /// Se usa desde implementaciones mock para simular autenticación exitosa.
+  Padre? buscarPadrePorCorreo(String correo) {
+    final correoNormalizado = correo.trim().toLowerCase();
+    for (final padre in _padres.values) {
+      if (padre.correo == correoNormalizado) {
+        return padre;
+      }
+    }
+    return null;
+  }
+
+  /// Marca una sesión activa sin validar credenciales.
+  ///
+  /// Se usa desde implementaciones mock para simular autenticación exitosa.
+  void activarSesion(String padreId) {
+    _sesionActiva = padreId;
   }
 
   Padre _buscarPadre(String padreId) {
